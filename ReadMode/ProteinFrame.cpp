@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "ProteinFrame.h"
-
+#include "objloader.hpp"
 //#include <tbb/tbb.h>
 #include <tbb/compat/condition_variable>
 #include <tbb/compat/thread>
-
+#include <GL/glew.h>
+#include "shader.hpp"
+#include "controls.hpp"
 ProteinFrame::ProteinFrame(void)
 {
 	m_x=0;
@@ -35,6 +37,9 @@ int ProteinFrame::LoadProtein(char *path){
 	}
 	m_rof=new ReadOBJFile();
 	m_rof->ReadFile(path);
+
+	bool res = loadOBJ(path, vertices, uvs, normals);
+
 	flag=true;
 	return 1;
 }
@@ -65,14 +70,150 @@ bool MyThread(ProteinFrame *p)
 			::glFlush();
 			::SwapBuffers(p->pDC->m_hDC);
 		}
+		
 	}
 	p->kill_thread=false;
+
+	/*::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
+
+	GLuint VertexArrayID;
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+	GLuint programID = LoadShaders( "StandardShading.vertexshader", "StandardShading.fragmentshader" );
+
+	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
+	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
+
+
+		// Compute the MVP matrix from keyboard and mouse input
+		computeMatricesFromInputs();
+		glm::mat4 ProjectionMatrix = getProjectionMatrix();
+		glm::mat4 ViewMatrix = getViewMatrix();
+		glm::mat4 ModelMatrix = glm::mat4(1.0);
+
+		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+		// Send our transformation to the currently bound shader, 
+		// in the "MVP" uniform
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+
+
+
+
+	// Load it into a VBO
+
+	GLuint vertexbuffer;
+	glGenBuffers(1, &vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, p->vertices.size() * sizeof(glm::vec3), &p->vertices[0], GL_STATIC_DRAW);
+
+	GLuint uvbuffer;
+	glGenBuffers(1, &uvbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, p->uvs.size() * sizeof(glm::vec2), &p->uvs[0], GL_STATIC_DRAW);
+
+	GLuint normalbuffer;
+	glGenBuffers(1, &normalbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, p->normals.size() * sizeof(glm::vec3), &p->normals[0], GL_STATIC_DRAW);
+
+	// Get a handle for our "LightPosition" uniform
+	glUseProgram(programID);
+	GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
+
+	do{
+
+		// Clear the screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Use our shader
+		glUseProgram(programID);
+
+		::glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		::glLoadIdentity();
+		//::glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+		//::glDisable(GL_DEPTH_TEST);
+		::glPushMatrix();
+
+
+		glm::vec3 lightPos = glm::vec3(4,4,4);
+		glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
+
+
+		// 1rst attribute buffer : p->vertices
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glVertexAttribPointer(
+			0,                  // attribute
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			0,                  // stride
+			(void*)0            // array buffer offset
+		);
+
+		// 2nd attribute buffer : p->uvs
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+		glVertexAttribPointer(
+			1,                                // attribute
+			2,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
+		// 3rd attribute buffer : p->normals
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		glVertexAttribPointer(
+			2,                                // attribute
+			3,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
+		// Draw the triangles !
+		glDrawArrays(GL_TRIANGLES, 0, p->vertices.size() );
+
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
+		::glColor3f(0.0f,1.0f,1.0f);
+		glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);//是环境材质颜色跟踪当前颜色
+		glEnable(GL_COLOR_MATERIAL);//启用材质颜色跟踪当前颜色
+		
+		::glPopMatrix();
+		//::glEnable(GL_DEPTH_TEST);
+		::glFlush();
+		::SwapBuffers(p->pDC->m_hDC);
+	} // Check if the ESC key was pressed or the window was closed
+	while( 1);
+
+	// Cleanup VBO and shader
+	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &normalbuffer);
+	glDeleteProgram(programID);
+
+	glDeleteVertexArrays(1, &VertexArrayID);
+	*/
 	return 1;
 }
 
 void ProteinFrame::Draw(void)
 {	
-	
+	glewExperimental = true; // Needed for core profile
+	if (glewInit() != GLEW_OK) {
+		fprintf(stderr, "Failed to initialize GLEW\n");
+		return ;
+	}
 	if(!flag_threadCreated){
 		std::thread thread(MyThread, this);
 		flag_threadCreated=true;
@@ -85,7 +226,7 @@ void ProteinFrame::Draw(void)
 		std::thread thread(MyThread, this);
 		kill_thread=false;
 	}
-	
+
 
 	//define protein frame as curent context 
 /*	::wglMakeCurrent(pDC->m_hDC,m_hRC);
@@ -111,6 +252,10 @@ void ProteinFrame::Draw(void)
 			::glFlush();
 			::SwapBuffers(pDC->m_hDC);
 		}*/
+
+	
+	
+
 }
 
 void ProteinFrame::LoadFrame(CWnd *pDlg)

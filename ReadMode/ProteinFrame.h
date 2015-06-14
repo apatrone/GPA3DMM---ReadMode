@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include <glm/glm.hpp>
 #include "ReadOBJFile.h"
 #include "GL/glut.h"
 #include <tbb/tbb.h>
@@ -47,5 +47,7 @@ public:
 	bool flag_threadCreated;
 	tbb::mutex lock;
 	bool kill_thread;
-
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
 };
