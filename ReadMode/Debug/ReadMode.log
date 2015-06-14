@@ -1,10 +1,35 @@
-﻿Build started 14/06/2015 21:33:44.
+﻿Build started 15/06/2015 00:42:17.
      1>Project "C:\Users\Agnes\Desktop\china\GPA3DMM - ReadMode\ReadMode\ReadMode.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
-         Touching "Debug\ReadMode.unsuccessfulbuild".
+         Creating "Debug\ReadMode.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          All outputs are up-to-date.
-         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Users\Agnes\Desktop\china\eigen3 /I"C:\opengl-wrappers\glm" /I"C:\opengl-wrappers\assimp-3.1.1-win-binaries\include" /I"C:\opengl-wrappers\tbb - thread\include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _UNICODE /D UNICODE /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\ReadMode.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ProteinFrame.cpp
+         ProteinFrame.cpp
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(72): warning C4005: 'INT8_MIN' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(144) : see previous definition of 'INT8_MIN'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(73): warning C4005: 'INT16_MIN' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(146) : see previous definition of 'INT16_MIN'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(74): warning C4005: 'INT32_MIN' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(148) : see previous definition of 'INT32_MIN'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(76): warning C4005: 'INT8_MAX' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(167) : see previous definition of 'INT8_MAX'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(77): warning C4005: 'INT16_MAX' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(171) : see previous definition of 'INT16_MAX'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(78): warning C4005: 'INT32_MAX' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(176) : see previous definition of 'INT32_MAX'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(79): warning C4005: 'UINT8_MAX' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(168) : see previous definition of 'UINT8_MAX'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(80): warning C4005: 'UINT16_MAX' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(173) : see previous definition of 'UINT16_MAX'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(81): warning C4005: 'UINT32_MAX' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(178) : see previous definition of 'UINT32_MAX'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(149): warning C4005: 'INT64_MIN' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(152) : see previous definition of 'INT64_MIN'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(150): warning C4005: 'INT64_MAX' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(184) : see previous definition of 'INT64_MAX'
+     1>c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdint.h(151): warning C4005: 'UINT64_MAX' : macro redefinition
+                 c:\program files (x86)\microsoft sdks\windows\v7.0a\include\intsafe.h(189) : see previous definition of 'UINT64_MAX'
        ResourceCompile:
          All outputs are up-to-date.
        ManifestResourceCompile:
@@ -34,4 +59,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.48
+Time Elapsed 00:00:02.70

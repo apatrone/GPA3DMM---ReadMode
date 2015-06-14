@@ -10,6 +10,7 @@
 #include "ProteinView.h"
 #include "TrackBall.h"
 #include "afxwin.h"
+#include "afxcmn.h"
 
 #define ROTATE_SPEED	  0.05
 
@@ -63,7 +64,7 @@ public:
 	afx_msg void OnBnClickedReadm2();
 	afx_msg void OnBnClickedShow();
 	afx_msg void OnCbnSelchangeCombo1();
-
+	
 	CPoint m_MouseL;
 	CPoint m_start;
 	CComboBox m_ComboMove;
@@ -74,4 +75,7 @@ public:
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	afx_msg void OnCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult);
+	CSliderCtrl m_SpeedSlider;
+
 };

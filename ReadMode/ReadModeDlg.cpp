@@ -53,7 +53,6 @@ END_MESSAGE_MAP()
 
 CReadModeDlg::CReadModeDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CReadModeDlg::IDD, pParent)
-	, m_infoBox(_T("YOYO"))
 {
 	protein1=new ProteinFrame();
 	protein2=new ProteinFrame();
@@ -68,6 +67,8 @@ void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_CBString(pDX, IDC_COMBO1, m_infoBox);
 
 	DDX_Control(pDX, IDC_INFO, m_info);
+	DDX_Control(pDX, IDC_SLIDER1, m_SpeedSlider);
+
 }
 BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
@@ -93,6 +94,7 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_CTLCOLOR()
 	ON_WM_CHAR()
 	ON_WM_KEYUP()
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER1, &CReadModeDlg::OnCustomdrawSlider1)
 END_MESSAGE_MAP()
 
 
@@ -129,6 +131,9 @@ BOOL CReadModeDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 	m_ComboMove.SetCurSel(0);
+	m_SpeedSlider.SetRange(2,120);
+	m_SpeedSlider.SetPos(59);
+	m_SpeedSlider.UpdateData();
 	m_move=0;
 	protein1->LoadFrame(GetDlgItem(IDC_SHOW1));
 	protein2->LoadFrame(GetDlgItem(IDC_SHOW2));
@@ -459,3 +464,17 @@ BOOL CReadModeDlg::PreTranslateMessage(MSG* pMsg)
 }
 
 
+
+
+void CReadModeDlg::OnCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	if(protein1->m_read=true ){
+		protein1->speed=m_SpeedSlider.GetPos();
+	}
+	if(protein2->m_read=true){
+		protein2->speed=m_SpeedSlider.GetPos();
+	}
+	*pResult = 0;
+}

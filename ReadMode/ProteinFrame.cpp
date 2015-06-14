@@ -26,7 +26,7 @@ ProteinFrame::ProteinFrame(void)
 	m_AutoRotation=false;
 	flag_threadCreated=false;
 	kill_thread=false;
-	
+	speed=60;
 }
 
 int ProteinFrame::LoadProtein(char *path){
@@ -49,6 +49,7 @@ bool MyThread(ProteinFrame *p)
 {
 	while(!p->kill_thread){
 		::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
+	
 		if(p->flag){
 			::glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 			::glLoadIdentity();
@@ -216,7 +217,8 @@ void ProteinFrame::Draw(void)
 	//	return ;
 	//}
 	if(!flag_threadCreated){
-		std::thread thread(MyThread, this);
+		std::thread t(MyThread, this);
+		std::thread::id id; id=t.get_id();
 		flag_threadCreated=true;
 		kill_thread=0;
 	}
@@ -337,13 +339,15 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 
 void ProteinFrame::KeyInput(int wParam, int nTimes){
 	static double previousTime=::GetTickCount();
-	const double z=0.01;const double y=0.3;
+	const double z=0.01;const double y=0.9;
 	currentTime=::GetTickCount();
 	deltaTime = float(currentTime - previousTime)/1000;//for seconde /1000 
 	
 	switch(wParam){
 		case (int)'W': case (int)'Z':  case VK_UP: 
-			m_z+=deltaTime*nTimes/1000000000;
+			m_rot_x+=deltaTime*speed;
+			//m_rot_x+=y+nTimes/10000000000;
+			//m_z+=deltaTime*nTimes/1000000000;
 			//m_z+=z+nTimes/10000000000;			
 			break;
 		case (int)'Q': case (int)'A': case VK_LEFT:
@@ -351,7 +355,8 @@ void ProteinFrame::KeyInput(int wParam, int nTimes){
 			previousTime = currentTime;
 			break;
 		case (int)'S': case VK_DOWN: 
-			m_z-= z+nTimes/10000000000;			
+			m_rot_x-=y+nTimes/10000000000;
+			//m_z-= z+nTimes/10000000000;			
 			break;
 		case (int)'D':  case VK_RIGHT:
 			m_rot_y+= y+nTimes/10000000000;

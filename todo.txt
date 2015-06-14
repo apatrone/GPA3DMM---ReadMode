@@ -10,8 +10,13 @@ attention aux accès concurrents dans ReadModeDlg!! toutes les modifs sur m_z, et
 gérer la rotation en tenant compte des fps
 
 nettoyer les variables avant de reloader un objet sur la meme frame
+pour gérer les mvts une équation serait mieux! c'est sacadé là !
 
-ATTENTION: includer la version 10 (visual studio) de tbb!! (vc10) VERSION 32BIT!!
+ça serait mieux que wasd controle la camera et la souris controle la position de l'objet
+sinon faire wasd pour objet et fleches pour camera?
 
+enlever leson quand ça tourne! depuis quand c'est comme ça :/
+
+ptet que le prob du thread c'est quand on fait m-rot draw?à debugger
 FAIT:
 faire un thread séparé au lieu d'un timer?!!!non!! draw devrait etre dans un while!!dans un thread
