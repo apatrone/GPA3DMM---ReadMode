@@ -26,6 +26,7 @@ ProteinFrame::ProteinFrame(void)
 	m_AutoRotation=false;
 	flag_threadCreated=false;
 	kill_thread=false;
+	previousTime=::GetTickCount();
 }
 
 int ProteinFrame::LoadProtein(char *path){
@@ -38,7 +39,7 @@ int ProteinFrame::LoadProtein(char *path){
 	m_rof=new ReadOBJFile();
 	m_rof->ReadFile(path);
 
-	bool res = loadOBJ(path, vertices, uvs, normals);
+	//bool res = loadOBJ(path, vertices, uvs, normals);
 
 	flag=true;
 	return 1;
@@ -209,11 +210,11 @@ bool MyThread(ProteinFrame *p)
 
 void ProteinFrame::Draw(void)
 {	
-	glewExperimental = true; // Needed for core profile
-	if (glewInit() != GLEW_OK) {
-		fprintf(stderr, "Failed to initialize GLEW\n");
-		return ;
-	}
+	//glewExperimental = true; // Needed for core profile
+	//if (glewInit() != GLEW_OK) {
+	//	fprintf(stderr, "Failed to initialize GLEW\n");
+	//	return ;
+	//}
 	if(!flag_threadCreated){
 		std::thread thread(MyThread, this);
 		flag_threadCreated=true;
@@ -332,4 +333,31 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
    // ::glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	//::glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 	//::glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
+}
+
+void ProteinFrame::KeyInput(int wParam, int nTimes){
+	const float f=0.0001;
+	currentTime=::GetTickCount();
+	deltaTime = float(currentTime - previousTime)/1000;
+	
+	if(deltaTime>5){
+		switch(wParam){
+			case (int)'W': case (int)'Z':  case VK_UP: 
+				m_z+= f*nTimes;
+				previousTime = currentTime;
+				break;
+			case (int)'Q': case (int)'A': case VK_LEFT:
+				m_rot_y-= f*nTimes;
+				previousTime = currentTime;
+				break;
+			case (int)'S': case VK_DOWN: 
+				m_z-= f*nTimes;
+				previousTime = currentTime;
+				break;
+			case (int)'D':  case VK_RIGHT:
+				m_rot_y+= f*nTimes;
+				previousTime = currentTime;
+				break;
+		}
+	}
 }

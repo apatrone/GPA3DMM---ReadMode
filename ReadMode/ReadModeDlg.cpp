@@ -91,6 +91,8 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_SHOW1, &CReadModeDlg::OnBnClickedShow)
 	ON_CBN_SELCHANGE(IDC_COMBO1, &CReadModeDlg::OnCbnSelchangeCombo1)
 	ON_WM_CTLCOLOR()
+	ON_WM_CHAR()
+	ON_WM_KEYUP()
 END_MESSAGE_MAP()
 
 
@@ -130,7 +132,7 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_move=0;
 	protein1->LoadFrame(GetDlgItem(IDC_SHOW1));
 	protein2->LoadFrame(GetDlgItem(IDC_SHOW2));
-	
+	::SetFocus(::GetActiveWindow());
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 void CReadModeDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -207,6 +209,7 @@ void CReadModeDlg::OnBnClickedReadm()
 	protein1->Draw();
 	m_infobox_handle->SetWindowTextW(_T(""));
 	//setTimer(1,100,NULL);
+	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnBnClickedMovem()
 {
@@ -221,7 +224,7 @@ void CReadModeDlg::OnBnClickedMovem()
 	protein1->m_move=true;
 	protein1->m_AutoRotation=false;
 	protein1->m_rotation=false;
-
+	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnBnClickedRoatm()
 {
@@ -236,7 +239,7 @@ void CReadModeDlg::OnBnClickedRoatm()
 	protein1->m_rotation=true;
 	protein1->m_AutoRotation=true;
 	protein1->m_move=false;
-	
+	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnBnClickedUpdate()
 {
@@ -246,6 +249,7 @@ void CReadModeDlg::OnBnClickedUpdate()
 	protein1->m_rotation=false;
 	protein1->m_move=false;
 	//this->UpdateData(true);
+	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
@@ -260,7 +264,7 @@ void CReadModeDlg::OnLButtonDown(UINT nFlags, CPoint point)
 		protein1->m_rot=true;
 		m_MouseL=point;
 	}
-	
+	::SetFocus(::GetActiveWindow());
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
 void CReadModeDlg::OnLButtonUp(UINT nFlags, CPoint point)
@@ -312,6 +316,7 @@ BOOL CReadModeDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 		protein2->m_z+=zDelta/120;
 		//protein2->Draw();
 	}
+	::SetFocus(::GetActiveWindow());
 	return CDialogEx::OnMouseWheel(nFlags, zDelta, pt);
 }
 void CReadModeDlg::OnRotation()
@@ -326,7 +331,7 @@ void CReadModeDlg::OnRotation()
 	protein1->m_AutoRotation=true;
 	protein1->m_move=false;
 	protein1->m_rotation=false;
-
+	::SetFocus(::GetActiveWindow());
 }
 
 
@@ -347,17 +352,20 @@ void CAboutDlg::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 		//根据菜单项的提示文字设置状态栏信息
 		//m_wndStatusBar.SetPaneText(0,cstStatusText);
 	}
+	::SetFocus(::GetActiveWindow());
 }
 
 void CReadModeDlg::OnBnClickedShow()
 {
 	m_move=1;
 	// TODO: Add your control notification handler code here
+	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnBnClickedShow2()
 {
 	// TODO: Add your control notification handler code here
 	m_move=2;
+	::SetFocus(::GetActiveWindow());
 }
 
 
@@ -371,7 +379,7 @@ void CReadModeDlg::OnBnClickedReadm2()
 	protein2->Draw();
 	//setTimer(1,100,NULL);
 	m_infobox_handle->SetWindowTextW(_T(""));
-
+	::SetFocus(::GetActiveWindow());
 }
 
 
@@ -411,3 +419,43 @@ HBRUSH CReadModeDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	// TODO:  Return a different brush if the default is not desired
 	return hbr;
 }
+
+
+void CReadModeDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: Add your message handler code here and/or call default
+	printf("yo\n");
+	CDialogEx::OnChar(nChar, nRepCnt, nFlags);
+}
+
+
+void CReadModeDlg::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: Add your message handler code here and/or call default
+
+	CDialogEx::OnKeyUp(nChar, nRepCnt, nFlags);
+}
+
+
+BOOL CReadModeDlg::PreTranslateMessage(MSG* pMsg)
+{
+	// TODO: Add your specialized code here and/or call the base class
+	// int y=0;
+	if(pMsg->message==WM_KEYDOWN){
+		if(protein1->m_read=true&&(m_move==1 || m_move==2) ){
+			protein1->KeyInput(pMsg->wParam, pMsg->lParam);
+		}
+		if(protein2->m_read=true&&(m_move==1 || m_move==3)){
+			protein2->KeyInput(pMsg->wParam,pMsg->lParam);
+		}
+	}
+	/*else if(pMsg->message== WM_CHAR){
+		if(pMsg->wParam){
+			int i;
+		}
+	}*/
+
+	return CDialogEx::PreTranslateMessage(pMsg);
+}
+
+

@@ -21,7 +21,7 @@ public:
 	int LoadProtein(char *Path);
 	void Draw(void);
 	void LoadFrame(CWnd *pDlg);
-
+	void ProteinFrame::KeyInput(int wPAram, int nTimes);
 	// Generated message map functions
 public:
 	ReadOBJFile *m_rof;
@@ -50,4 +50,7 @@ public:
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
+	double previousTime;
+	double currentTime;
+	double deltaTime;
 };
