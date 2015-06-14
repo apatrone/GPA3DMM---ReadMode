@@ -26,7 +26,7 @@ ProteinFrame::ProteinFrame(void)
 	m_AutoRotation=false;
 	flag_threadCreated=false;
 	kill_thread=false;
-	previousTime=::GetTickCount();
+	
 }
 
 int ProteinFrame::LoadProtein(char *path){
@@ -336,28 +336,26 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 }
 
 void ProteinFrame::KeyInput(int wParam, int nTimes){
-	const float f=0.0001;
+	static double previousTime=::GetTickCount();
+	const double z=0.01;const double y=0.3;
 	currentTime=::GetTickCount();
-	deltaTime = float(currentTime - previousTime)/1000;
+	deltaTime = float(currentTime - previousTime)/1000;//for seconde /1000 
 	
-	if(deltaTime>5){
-		switch(wParam){
-			case (int)'W': case (int)'Z':  case VK_UP: 
-				m_z+= f*nTimes;
-				previousTime = currentTime;
-				break;
-			case (int)'Q': case (int)'A': case VK_LEFT:
-				m_rot_y-= f*nTimes;
-				previousTime = currentTime;
-				break;
-			case (int)'S': case VK_DOWN: 
-				m_z-= f*nTimes;
-				previousTime = currentTime;
-				break;
-			case (int)'D':  case VK_RIGHT:
-				m_rot_y+= f*nTimes;
-				previousTime = currentTime;
-				break;
-		}
+	switch(wParam){
+		case (int)'W': case (int)'Z':  case VK_UP: 
+			m_z+=deltaTime*nTimes/1000000000;
+			//m_z+=z+nTimes/10000000000;			
+			break;
+		case (int)'Q': case (int)'A': case VK_LEFT:
+			m_rot_y-= y+nTimes/10000000000;
+			previousTime = currentTime;
+			break;
+		case (int)'S': case VK_DOWN: 
+			m_z-= z+nTimes/10000000000;			
+			break;
+		case (int)'D':  case VK_RIGHT:
+			m_rot_y+= y+nTimes/10000000000;
+			break;
 	}
+	previousTime = currentTime;		
 }
