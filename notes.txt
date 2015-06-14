@@ -1,0 +1,3 @@
+OnCtlColor is MFC's way in handling the coloring of the controls and dialog when they are needed to be repainted. This functions is automatically called by the system or rather by the MFC internals to ask us what should be the control's color. We don't call this function directly.
+
+To let MFC know that we want to use this function, go to the Wizard Dialog (CTRL + W). In the Classname and Object ID, select your dialog's class. In the Messages, double-click the WM_CTLCOLOR. It will add OnCtlColor in the Member Functions. Add the code that Kivju gave you and that's it. Run the program and you can see that the text is in red.
