@@ -11,7 +11,7 @@ ProteinFrame::ProteinFrame(void)
 {
 	m_x=0;
 	m_y=-0.5;
-	m_z=-5.0;
+	m_z=-10.0;
 	m_move=false;
 	m_read=false;
 
@@ -31,10 +31,16 @@ ProteinFrame::ProteinFrame(void)
 
 int ProteinFrame::LoadProtein(char *path){
 	m_read=true;
-	if(flag)
+	/*if(flag)
 	{
 		delete m_rof;
 		m_rof=NULL;
+	}*/
+	if(flag_threadCreated){
+		kill_thread=true;
+		while(kill_thread){};
+		Reset();
+		flag_threadCreated==false;
 	}
 	m_rof=new ReadOBJFile();
 	m_rof->ReadFile(path);
@@ -47,10 +53,13 @@ int ProteinFrame::LoadProtein(char *path){
 
 bool MyThread(ProteinFrame *p)
 {
+	p->LoadFrame(p->wnd);
 	while(!p->kill_thread){
+	//	p->m_hRC=::wglCreateContext(p->pDC->m_hDC);
 		::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
 	
 		if(p->flag){
+			//p->LoadFrame(p->wnd);
 			::glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 			::glLoadIdentity();
 			//::glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
@@ -220,7 +229,7 @@ void ProteinFrame::Draw(void)
 		std::thread t(MyThread, this);
 		std::thread::id id; id=t.get_id();
 		flag_threadCreated=true;
-		kill_thread=0;
+		kill_thread=false;
 	}
 	else{
 		kill_thread=true;
@@ -263,6 +272,7 @@ void ProteinFrame::Draw(void)
 
 void ProteinFrame::LoadFrame(CWnd *pDlg)
 {
+	
 // TODO: Add extra initialization here
 	GLfloat ambient[]={0.5f,0.5f,0.5f,1.0f};
 	GLfloat diffuse[]={1.0f,1.0f,1.0f,1.0f};
@@ -277,7 +287,8 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 	
 	PIXELFORMATDESCRIPTOR pfd={sizeof(PIXELFORMATDESCRIPTOR),1,PFD_SUPPORT_OPENGL|PFD_DRAW_TO_WINDOW|PFD_DOUBLEBUFFER,PFD_TYPE_RGBA,32,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,PFD_MAIN_PLANE,0,0,0,0};
-
+	
+	wnd=pDlg;
 	
 	pDC=pDlg->GetDC();
 
@@ -300,7 +311,7 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 	::glLoadIdentity();
 	
 	::glShadeModel(GL_SMOOTH);  //启用阴影平滑
-	::glClearColor(0.0f,0.0f,0.0f,0.3f); //设置黑色背景
+	::glClearColor(1.0f,1.0f,1.0f,0.3f); //设置黑色背景
 	
 	::glClearDepth(1.0f);  //设置深度缓存
 	::glEnable(GL_DEPTH_TEST); //启用深度测试
@@ -345,8 +356,8 @@ void ProteinFrame::KeyInput(int wParam, int nTimes){
 	
 	switch(wParam){
 		case (int)'W': case (int)'Z':  case VK_UP: 
-			m_rot_x+=deltaTime*speed;
-			//m_rot_x+=y+nTimes/10000000000;
+			//m_rot_x+=deltaTime*speed;  //more fluid but only object on the right moves, wtf
+			m_rot_x+=y+nTimes/10000000000;
 			//m_z+=deltaTime*nTimes/1000000000;
 			//m_z+=z+nTimes/10000000000;			
 			break;
@@ -363,4 +374,24 @@ void ProteinFrame::KeyInput(int wParam, int nTimes){
 			break;
 	}
 	previousTime = currentTime;		
+}
+
+void ProteinFrame::Reset(void){
+	m_x=0;
+	m_y=-0.5;
+	m_z=-10.0;
+	m_move=false;
+	m_read=false;
+
+	m_rot_x=0;
+	m_rot_y=0;
+	m_rot_z=0;
+	m_rotation=0;
+	//自动旋转为y轴，默认不旋转
+	free(m_rof);
+	flag=false;
+	m_AutoRotation=false;
+	flag_threadCreated=false;
+	kill_thread=false;
+
 }

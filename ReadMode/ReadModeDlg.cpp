@@ -135,8 +135,8 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_SpeedSlider.SetPos(59);
 	m_SpeedSlider.UpdateData();
 	m_move=0;
-	protein1->LoadFrame(GetDlgItem(IDC_SHOW1));
-	protein2->LoadFrame(GetDlgItem(IDC_SHOW2));
+	protein1->wnd=CWnd::GetDlgItem(IDC_SHOW1);
+	protein2->wnd=CWnd::GetDlgItem(IDC_SHOW2);
 	::SetFocus(::GetActiveWindow());
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -234,25 +234,34 @@ void CReadModeDlg::OnBnClickedMovem()
 void CReadModeDlg::OnBnClickedRoatm()
 {
 	// TODO: Add your control notification handler code here
-	if (protein1->m_read==false)
+	if (protein1->m_read==false && protein2->m_read==false)
 	{
 		//AfxMessageBox(_T("请先读取物体!"));
 		m_infobox_handle->SetWindowTextW(_T("Please load an object first")); //if no _T writes in chinese
 		return;
 	} 
-	
-	protein1->m_rotation=true;
-	protein1->m_AutoRotation=true;
-	protein1->m_move=false;
+	if(protein1->m_read==true){
+		protein1->m_rotation=true;
+		protein1->m_AutoRotation=true;
+		protein1->m_move=false;
+	}
+	if(protein2->m_read==true){
+		protein2->m_rotation=true;
+		protein2->m_AutoRotation=true;
+		protein2->m_move=false;
+	}
 	::SetFocus(::GetActiveWindow());
 }
-void CReadModeDlg::OnBnClickedUpdate()
+void CReadModeDlg::OnBnClickedUpdate()//stop button
 {
 	//give a stop order
 	// TODO: Add your control notification handler code here
 	protein1->m_AutoRotation=false;
 	protein1->m_rotation=false;
 	protein1->m_move=false;
+	protein2->m_AutoRotation=false;
+	protein2->m_rotation=false;
+	protein2->m_move=false;
 	//this->UpdateData(true);
 	::SetFocus(::GetActiveWindow());
 }
@@ -477,4 +486,5 @@ void CReadModeDlg::OnCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
 		protein2->speed=m_SpeedSlider.GetPos();
 	}
 	*pResult = 0;
+	::SetFocus(::GetActiveWindow());
 }

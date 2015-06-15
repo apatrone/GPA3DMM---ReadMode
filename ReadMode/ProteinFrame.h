@@ -21,7 +21,8 @@ public:
 	int LoadProtein(char *Path);
 	void Draw(void);
 	void LoadFrame(CWnd *pDlg);
-	void ProteinFrame::KeyInput(int wPAram, int nTimes);
+	void KeyInput(int wPAram, int nTimes);
+	void Reset(void);
 	// Generated message map functions
 public:
 	ReadOBJFile *m_rof;
@@ -53,4 +54,5 @@ public:
 	double currentTime;
 	double deltaTime;
 	float speed;
+	CWnd *wnd;
 };
