@@ -1,11 +1,13 @@
 #include "StdAfx.h"
 #include "ReadOBJFile.h"
-
+#include <string>
 
 ReadOBJFile::ReadOBJFile(void)
 {
 	memset(this->m_FileName,0,256);
 	m_nCount=0;
+	lastj=0;
+	length=0;
 }
 
 
@@ -587,8 +589,7 @@ void ReadOBJFile::Draw()
 						delete Data;
 						break;
 					}
-					else
-						if(VertexData[j]=='/')
+					else if(VertexData[j]=='/')
 						{
 							n4=j;
 							int nLength=n4-n3;
@@ -627,6 +628,19 @@ void ReadOBJFile::Draw()
 							break;
 
 						}
+					else
+					{
+						std::string str(VertexData);
+						if(str.find('/')==-1 && (j==lastj+length || j==0 )){ //no '/' found //
+							length=sizeof(VertexData);
+							Data=new char[length+1];
+							memset(Data,0,length+1);
+							strncpy(Data,VertexData,length);
+							sscanf(Data,"%d",&d1);
+							delete Data;
+							::glVertex3f(this->m_v[d1-1].x,this->m_v[d1-1].y,this->m_v[d1-1].z);
+						}
+					}
 				}
 				flag++;
 				n1=n2+1;

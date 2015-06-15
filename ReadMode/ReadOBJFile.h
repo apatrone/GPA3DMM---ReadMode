@@ -59,5 +59,7 @@ public:
 	GLTexture* m_vt;
 	GLFace  **m_face;
 	GLMtl * m_mtl;
+	int lastj;
+	int length;
 };
 
