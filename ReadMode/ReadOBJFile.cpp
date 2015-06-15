@@ -1,13 +1,17 @@
 #include "StdAfx.h"
 #include "ReadOBJFile.h"
 #include <string>
-
+#include <glm/glm.hpp>
+#include <vector>
 ReadOBJFile::ReadOBJFile(void)
 {
 	memset(this->m_FileName,0,256);
 	m_nCount=0;
 	lastj=0;
 	length=0;
+	res=0;
+	init=false;
+
 }
 
 
@@ -493,104 +497,87 @@ bool ReadOBJFile::ReadLine(FILE *fp,char *str)
 }
 void ReadOBJFile::Draw()
 {
-	FILE * fp;
-	fp=fopen(this->m_FileName,"rb");
-	if(fp==NULL) return; 
-	char str[256];
-	while(1)
-	{
-		memset(str,0,256);
-		if (!this->ReadLine(fp,str))
-			break;
-		if (strncmp("usemtl",str,6)==0)
+
+	if(!init){
+		bool vn=false; bool vt=false;
+		FILE * fp;
+		fp=fopen(this->m_FileName,"rb");
+		if(fp==NULL) return; 
+		char str[256];
+		while(1)
 		{
-			int i=0;
-			while (i!=m_nCount)
+			memset(str,0,256);
+			if (!this->ReadLine(fp,str))
+				break;
+			if (strncmp("usemtl",str,6)==0)
 			{
-				if (strcmp(this->m_mtl[i].MtlName,str+7)==0)
-				{ 
-					const GLfloat matAmbient[]    = {this->m_mtl[i].ka[0],this->m_mtl[i].ka[1],this->m_mtl[i].ka[2], 0.5};  
-					const GLfloat matDiffuse[]    = {this->m_mtl[i].kd[0],this->m_mtl[i].kd[1],this->m_mtl[i].kd[2], 0.5};  
-					const GLfloat matSpecular[]   = {this->m_mtl[i].ks[0],this->m_mtl[i].ks[1],this->m_mtl[i].ks[2], 0.5};  
-					const GLfloat matEmission[]   = {this->m_mtl[i].ke[0],this->m_mtl[i].ke[1],this->m_mtl[i].ke[2], 0.5};     
-					const GLfloat lightShininess[]={this->m_mtl[i].ns};
-					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matAmbient);  
-					glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matDiffuse);  
-					glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matSpecular);  
-					glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, matEmission);  
-					glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, lightShininess); 
-					break;
-				}
-				else
-					i++;
-			}
-		}
-		if (str[0]=='f'&&str[1]==' ')
-		{
-			int nEdge=0;
-			for (int j=0;str[j]!='\0';j++)
-			{
-				if (str[j]==' '&&str[j+1]!=' '&&str[j+1]!='\0')
-					nEdge++;
-			}
-			if(nEdge==3)
-				::glBegin(GL_TRIANGLES);
-			if (nEdge==4)
-				::glBegin(GL_QUADS);
-			int start;
-			for (int j=0;str[j]!='\0';j++)
-			{
-				if(str[j]==' '&&str[j+1]!=' ')
+				int i=0;
+				while (i!=m_nCount)
 				{
-					start=j+1;
-					break;
+					if (strcmp(this->m_mtl[i].MtlName,str+7)==0)
+					{ 
+						const GLfloat matAmbient[]    = {this->m_mtl[i].ka[0],this->m_mtl[i].ka[1],this->m_mtl[i].ka[2], 0.5};  
+						const GLfloat matDiffuse[]    = {this->m_mtl[i].kd[0],this->m_mtl[i].kd[1],this->m_mtl[i].kd[2], 0.5};  
+						const GLfloat matSpecular[]   = {this->m_mtl[i].ks[0],this->m_mtl[i].ks[1],this->m_mtl[i].ks[2], 0.5};  
+						const GLfloat matEmission[]   = {this->m_mtl[i].ke[0],this->m_mtl[i].ke[1],this->m_mtl[i].ke[2], 0.5};     
+						const GLfloat lightShininess[]={this->m_mtl[i].ns};
+						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matAmbient);  
+						glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matDiffuse);  
+						glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matSpecular);  
+						glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, matEmission);  
+						glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, lightShininess); 
+						break;
+					}
+					else
+						i++;
 				}
 			}
-			int n1=start,n2;
-			int flag=1;
-			while (flag!=nEdge+1)
+			if (str[0]=='f'&&str[1]==' ')
 			{
-				for (int i=n1;;i++)
+				int nEdge=0;
+				for (int j=0;str[j]!='\0';j++)
 				{
-					if(str[i]==' '||str[i]=='\0')
+					if (str[j]==' '&&str[j+1]!=' '&&str[j+1]!='\0')
+						nEdge++;
+				}
+				if(nEdge==3)
+					::glBegin(GL_TRIANGLES);
+				if (nEdge==4)
+					::glBegin(GL_QUADS);
+				int start;
+				for (int j=0;str[j]!='\0';j++)
+				{
+					if(str[j]==' '&&str[j+1]!=' ')
 					{
-						n2=i;
+						start=j+1;
 						break;
 					}
 				}
-				char *VertexData;
-				int nCount=n2-n1;
-				VertexData=new char[nCount+1];
-				memset(VertexData,0,nCount+1);
-				strncpy(VertexData,str+n1,nCount);
-				int n3=0,n4;
-				for(int j=0;j<nCount;j++)
+				int n1=start,n2;
+				int flag=1;
+				while (flag!=nEdge+1)
 				{
-					char *Data;
-					int d1,d2,d3;
-					if(VertexData[j]=='/'&&VertexData[j+1]=='/')
+					for (int i=n1;;i++)
 					{
-						n4=j;
-						int nLength=n4-n3;
-						Data=new char[nLength+1];
-						memset(Data,0,nLength+1);
-						strncpy(Data,VertexData,nLength);
-						sscanf(Data,"%d",&d1);
-						delete Data;
-						n3=n4+2;
-						n4=nCount;
-						nLength=n4-n3;
-						Data=new char[nLength+1];
-						memset(Data,0,nLength+1);
-						strncpy(Data,VertexData+n3,nLength);
-						sscanf(Data,"%d",&d2);
-						::glNormal3f(this->m_vn[d2-1].x,this->m_vn[d2-1].y,this->m_vn[d2-1].z);
-						::glVertex3f(this->m_v[d1-1].x,this->m_v[d1-1].y,this->m_v[d1-1].z);
-						delete Data;
-						break;
-					}
-					else if(VertexData[j]=='/')
+						if(str[i]==' '||str[i]=='\0')
 						{
+							n2=i;
+							break;
+						}
+					}
+					char *VertexData;
+					int nCount=n2-n1;
+					VertexData=new char[nCount+1];
+					memset(VertexData,0,nCount+1);
+					strncpy(VertexData,str+n1,nCount);
+					int n3=0,n4;
+					for(int j=0;j<nCount;j++)
+					{
+						char *Data;
+						int d1,d2,d3;
+						if(VertexData[j]=='/'&&VertexData[j+1]=='/')
+						{
+							vn=true;
 							n4=j;
 							int nLength=n4-n3;
 							Data=new char[nLength+1];
@@ -598,56 +585,102 @@ void ReadOBJFile::Draw()
 							strncpy(Data,VertexData,nLength);
 							sscanf(Data,"%d",&d1);
 							delete Data;
-							n3=n4+1;
-							for(int k=n3;k<nCount;k++)
-							{
-								if(VertexData[k]=='/')
-								{
-									n4=k;
-									break;
-								}
-							}
-							nLength=n4-n3;
-							Data=new char[nLength+1];
-							memset(Data,0,nLength+1);
-							strncpy(Data,VertexData+n3,nLength);
-							sscanf(Data,"%d",&d2);
-							//::glTexCoord2f(this->m_vt[dd-1].x,this->m_vt[dd-1].y);
-							delete Data;
-							n3=n4+1;
+							n3=n4+2;
 							n4=nCount;
 							nLength=n4-n3;
 							Data=new char[nLength+1];
 							memset(Data,0,nLength+1);
 							strncpy(Data,VertexData+n3,nLength);
-							sscanf(Data,"%d",&d3);
-							::glNormal3f(this->m_vn[d3-1].x,this->m_vn[d3-1].y,this->m_vn[d3-1].z);
-							::glTexCoord3f(this->m_vt[d2-1].x,this->m_vt[d2-1].y,this->m_vt[d2-1].z);
+							sscanf(Data,"%d",&d2);
+							vertexIndices.push_back(d1-1);
+							normalIndices.push_back(d2-1);
+							::glNormal3f(this->m_vn[d2-1].x,this->m_vn[d2-1].y,this->m_vn[d2-1].z);
 							::glVertex3f(this->m_v[d1-1].x,this->m_v[d1-1].y,this->m_v[d1-1].z);
 							delete Data;
 							break;
-
 						}
-					else
-					{
-						std::string str(VertexData);
-						if(str.find('/')==-1 && (j==lastj+length || j==0 )){ //no '/' found //
-							length=sizeof(VertexData);
-							Data=new char[length+1];
-							memset(Data,0,length+1);
-							strncpy(Data,VertexData,length);
-							sscanf(Data,"%d",&d1);
-							delete Data;
-							::glVertex3f(this->m_v[d1-1].x,this->m_v[d1-1].y,this->m_v[d1-1].z);
+						else if(VertexData[j]=='/')
+							{
+								vt=true; vn=true;
+								n4=j;
+								int nLength=n4-n3;
+								Data=new char[nLength+1];
+								memset(Data,0,nLength+1);
+								strncpy(Data,VertexData,nLength);
+								sscanf(Data,"%d",&d1);
+								delete Data;
+								n3=n4+1;
+								for(int k=n3;k<nCount;k++)
+								{
+									if(VertexData[k]=='/')
+									{
+										n4=k;
+										break;
+									}
+								}
+								nLength=n4-n3;
+								Data=new char[nLength+1];
+								memset(Data,0,nLength+1);
+								strncpy(Data,VertexData+n3,nLength);
+								sscanf(Data,"%d",&d2);
+								//::glTexCoord2f(this->m_vt[dd-1].x,this->m_vt[dd-1].y);
+								delete Data;
+								n3=n4+1;
+								n4=nCount;
+								nLength=n4-n3;
+								Data=new char[nLength+1];
+								memset(Data,0,nLength+1);
+								strncpy(Data,VertexData+n3,nLength);
+								sscanf(Data,"%d",&d3);
+								vertexIndices.push_back(d1-1);
+								uvIndices.push_back(d2-1);
+								normalIndices.push_back(d3-1);
+								::glNormal3f(this->m_vn[d3-1].x,this->m_vn[d3-1].y,this->m_vn[d3-1].z);
+								::glTexCoord3f(this->m_vt[d2-1].x,this->m_vt[d2-1].y,this->m_vt[d2-1].z);
+								::glVertex3f(this->m_v[d1-1].x,this->m_v[d1-1].y,this->m_v[d1-1].z);
+								delete Data;
+								break;
+
+							}
+						else
+						{
+							std::string str(VertexData);
+							if(str.find('/')==-1 && (j==lastj+length || j==0 )){ //no '/' found //
+								length=sizeof(VertexData);
+								Data=new char[length+1];
+								memset(Data,0,length+1);
+								strncpy(Data,VertexData,length);
+								sscanf(Data,"%d",&d1);
+								delete Data;
+								vertexIndices.push_back(d1-1);
+								::glVertex3f(this->m_v[d1-1].x,this->m_v[d1-1].y,this->m_v[d1-1].z);
+							}
 						}
 					}
+					flag++;
+					n1=n2+1;
+					delete VertexData;
 				}
-				flag++;
-				n1=n2+1;
-				delete VertexData;
+				::glEnd();
 			}
-			::glEnd();
-		}
 
+		}
+		init=true;
+		res=(vt==true)+2*(vn==true); 
 	}
-}
+	else 
+	{
+		::glBegin(GL_TRIANGLES);
+		for(int i=0; i<vertexIndices.size(); i++){			
+			if(res>=2)
+				::glNormal3f(this->m_vn[normalIndices[i]].x,this->m_vn[normalIndices[i]].y,this->m_vn[normalIndices[i]].z);
+			if(res==1)
+				::glTexCoord3f(this->m_vt[uvIndices[i]].x,this->m_vt[uvIndices[i]].y,this->m_vt[uvIndices[i]].z);
+			
+			::glVertex3f(m_v[vertexIndices[i]].x,this->m_v[vertexIndices[i]].y,this->m_v[vertexIndices[i]].z);			
+		}
+		glEnd();
+		
+	}
+
+}	

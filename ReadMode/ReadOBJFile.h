@@ -1,7 +1,8 @@
 #pragma once
 #include <GL/glew.h>
 #include <GL/GLAUX.H>
-
+#include <glm/glm.hpp>
+#include <vector>
 typedef struct  Vertex        //保存点信息
 {
 	GLfloat x;
@@ -61,5 +62,9 @@ public:
 	GLMtl * m_mtl;
 	int lastj;
 	int length;
+	bool init;
+	int res;
+	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+
 };
 

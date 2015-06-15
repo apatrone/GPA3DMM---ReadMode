@@ -40,7 +40,7 @@ int ProteinFrame::LoadProtein(char *path){
 		kill_thread=true;
 		while(kill_thread){};
 		Reset();
-		flag_threadCreated==false;
+		flag_threadCreated=false;
 	}
 	m_rof=new ReadOBJFile();
 	m_rof->ReadFile(path);
@@ -55,7 +55,6 @@ bool MyThread(ProteinFrame *p)
 {
 	p->LoadFrame(p->wnd);
 	while(!p->kill_thread){
-	//	p->m_hRC=::wglCreateContext(p->pDC->m_hDC);
 		::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
 	
 		if(p->flag){
@@ -274,7 +273,7 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 {
 	
 // TODO: Add extra initialization here
-	GLfloat ambient[]={0.5f,0.5f,0.5f,1.0f};
+	/*GLfloat ambient[]={0.5f,0.5f,0.5f,1.0f};
 	GLfloat diffuse[]={1.0f,1.0f,1.0f,1.0f};
 	GLfloat specular[]={1.0f,1.0f,1.0f,1.0f};
 	GLfloat position[]={0.0f,0.0f,0.0f,1.0f};
@@ -282,7 +281,7 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 	GLfloat ambient1[]={0.0f,0.1f,0.8f,1.0f};
 	GLfloat diffuse1[]={0.0f,0.3f,0.6f,1.0f};
 	GLfloat specular1[]={1.0f,0.0f,1.0f,1.0f};
-	GLfloat shininess[]={10.0f};
+	GLfloat shininess[]={10.0f};*/
 	
 	
 	PIXELFORMATDESCRIPTOR pfd={sizeof(PIXELFORMATDESCRIPTOR),1,PFD_SUPPORT_OPENGL|PFD_DRAW_TO_WINDOW|PFD_DOUBLEBUFFER,PFD_TYPE_RGBA,32,
@@ -302,7 +301,7 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 	pDlg->GetClientRect(rect);
 
 	::glViewport(0,0,rect.Width(),rect.Height()); //重置当前视口
-	
+	::glEnable(GL_CULL_FACE);
 	::glMatrixMode(GL_PROJECTION);//选择投影矩阵
 	::glLoadIdentity(); //重置投影矩阵
 	::gluPerspective(45.0,rect.Width()/rect.Height(),0.1,1000.0);
@@ -315,7 +314,7 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 	
 	::glClearDepth(1.0f);  //设置深度缓存
 	::glEnable(GL_DEPTH_TEST); //启用深度测试
-	::glDepthFunc(GL_LEQUAL);// 所作深度测试类型
+	::glDepthFunc(GL_LESS);// 所作深度测试类型
 	/*::glLightfv(GL_LIGHT1,GL_AMBIENT,ambient);
 	::glLightfv(GL_LIGHT1,GL_DIFFUSE,diffuse);
 	::glLightfv(GL_LIGHT1,GL_SPECULAR,specular);
@@ -356,21 +355,24 @@ void ProteinFrame::KeyInput(int wParam, int nTimes){
 	
 	switch(wParam){
 		case (int)'W': case (int)'Z':  case VK_UP: 
-			//m_rot_x+=deltaTime*speed;  //more fluid but only object on the right moves, wtf
+			m_rot_x+=deltaTime*speed;  //more fluid but only object on the right moves, wtf
 			m_rot_x+=y+nTimes/10000000000;
 			//m_z+=deltaTime*nTimes/1000000000;
 			//m_z+=z+nTimes/10000000000;			
 			break;
 		case (int)'Q': case (int)'A': case VK_LEFT:
-			m_rot_y-= y+nTimes/10000000000;
+			m_rot_y-=deltaTime*speed;
+			//m_rot_y-= y+nTimes/10000000000;
 			previousTime = currentTime;
 			break;
 		case (int)'S': case VK_DOWN: 
-			m_rot_x-=y+nTimes/10000000000;
+			m_rot_x-=deltaTime*speed;
+			//m_rot_x-=y+nTimes/10000000000;
 			//m_z-= z+nTimes/10000000000;			
 			break;
 		case (int)'D':  case VK_RIGHT:
-			m_rot_y+= y+nTimes/10000000000;
+			m_rot_y+=deltaTime*speed;
+			//m_rot_y+= y+nTimes/10000000000;
 			break;
 	}
 	previousTime = currentTime;		
