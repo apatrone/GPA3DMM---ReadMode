@@ -56,7 +56,7 @@ CReadModeDlg::CReadModeDlg(CWnd* pParent /*=NULL*/)
 {
 	protein1=new ProteinFrame();
 	protein2=new ProteinFrame();
-	protView=new ProteinView();
+	//protView=new ProteinView();
 	//m_info.SetWindowText((LPCTSTR)"bitch");
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -69,6 +69,7 @@ void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_INFO, m_info);
 	DDX_Control(pDX, IDC_SLIDER1, m_SpeedSlider);
 
+	DDX_Control(pDX, IDC_FRAME1, frame1);
 }
 BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
@@ -95,6 +96,7 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_CHAR()
 	ON_WM_KEYUP()
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER1, &CReadModeDlg::OnCustomdrawSlider1)
+	ON_STN_CLICKED(IDC_FRAME1, &CReadModeDlg::OnStnClickedFrame1)
 END_MESSAGE_MAP()
 
 
@@ -135,7 +137,7 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_SpeedSlider.SetPos(59);
 	m_SpeedSlider.UpdateData();
 	m_move=0;
-	protein1->wnd=CWnd::GetDlgItem(IDC_SHOW1);
+	protein1->wnd=CWnd::GetDlgItem(IDC_FRAME1);
 	protein2->wnd=CWnd::GetDlgItem(IDC_SHOW2);
 	::SetFocus(::GetActiveWindow());
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -158,6 +160,10 @@ void CReadModeDlg::OnSysCommand(UINT nID, LPARAM lParam)
 
 void CReadModeDlg::OnPaint()
 {
+	/*if(protein1->m_read==true)
+	protein1->Draw();
+	if(protein2->m_read==true)
+	protein2->Draw();*/
 	if (IsIconic())
 	{
 		CPaintDC dc(this); // device context for painting
@@ -201,19 +207,48 @@ void CReadModeDlg::OnTimer(UINT_PTR nIDEvent)
 		protein2->Draw();
 
 	}
-	//setTimer(1,100,NULL);
+	//SetTimer(1,100,NULL);
 	CDialogEx::OnTimer(nIDEvent);
 }
 void CReadModeDlg::OnBnClickedReadm()
 {
 	// TODO: Add your control notification handler code here
+
 	CFileDialog *pDlg=new CFileDialog(true);
 	if(pDlg->DoModal()!=IDOK)
 		return;
-	protein1->LoadProtein(CW2A(pDlg->GetPathName()));
-	protein1->Draw();
+	
+	
+	/*CRect rect;
+	protein1->wnd->GetClientRect(rect);*/
+	//protein1->wnd->InvalidateRect(NULL);	
+	//protein1->wnd->ValidateRect(NULL);*/*/
+//	if(protein1!=NULL) protein1->;
+	//protein1=new ProteinFrame();
+	//if(protein1->Kill()){
+	//delete protein1;
+	//protein1=new ProteinFrame();
+	//protein1->wnd=CWnd::GetDlgItem(IDC_SHOW1);
+	//protein1->LoadFrame(protein1->wnd);
+	if(m_init==false){
+		protein1->LoadProtein(CW2A(pDlg->GetPathName()));		
+		protein1->Draw();
+		m_init=true;
+	}
+	else{
+		protein1->kill_thread=true;
+		while(protein1->kill_thread==false){}
+		protein1->LoadProtein(CW2A(pDlg->GetPathName()));		
+		protein1->Draw();
+	}
+
+	//}
+	//protein1->wnd=CWnd::GetDlgItem(IDC_SHOW1);
+	//protein1->wnd->RedrawWindow(rect);
+
+	//
 	m_infobox_handle->SetWindowTextW(_T(""));
-	//setTimer(1,100,NULL);
+	//SetTimer(1,100,NULL);
 	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnBnClickedMovem()
@@ -391,7 +426,7 @@ void CReadModeDlg::OnBnClickedReadm2()
 		return;
 	protein2->LoadProtein(CW2A(pDlg->GetPathName()));
 	protein2->Draw();
-	//setTimer(1,100,NULL);
+	//SetTimer(1,100,NULL);
 	m_infobox_handle->SetWindowTextW(_T(""));
 	::SetFocus(::GetActiveWindow());
 }
@@ -454,7 +489,7 @@ void CReadModeDlg::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
 BOOL CReadModeDlg::PreTranslateMessage(MSG* pMsg)
 {
 	// TODO: Add your specialized code here and/or call the base class
-	// int y=0;
+
 	if(pMsg->message==WM_KEYDOWN){
 		if(protein1->m_read=true&&(m_move==1 || m_move==2) ){
 			protein1->KeyInput(pMsg->wParam, pMsg->lParam);
@@ -462,12 +497,8 @@ BOOL CReadModeDlg::PreTranslateMessage(MSG* pMsg)
 		if(protein2->m_read=true&&(m_move==1 || m_move==3)){
 			protein2->KeyInput(pMsg->wParam,pMsg->lParam);
 		}
+		return true;
 	}
-	/*else if(pMsg->message== WM_CHAR){
-		if(pMsg->wParam){
-			int i;
-		}
-	}*/
 
 	return CDialogEx::PreTranslateMessage(pMsg);
 }
@@ -487,4 +518,10 @@ void CReadModeDlg::OnCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 	*pResult = 0;
 	::SetFocus(::GetActiveWindow());
+}
+
+
+void CReadModeDlg::OnStnClickedFrame1()
+{
+	// TODO: Add your control notification handler code here
 }

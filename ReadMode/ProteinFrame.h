@@ -19,10 +19,11 @@ class ProteinFrame
 public:
 	ProteinFrame();
 	int LoadProtein(char *Path);
-	void Draw(void);
+	bool Draw(void);
 	void LoadFrame(CWnd *pDlg);
 	void KeyInput(int wPAram, int nTimes);
 	void Reset(void);
+	bool Kill();
 	// Generated message map functions
 public:
 	ReadOBJFile *m_rof;
@@ -37,7 +38,7 @@ public:
 	float m_rot_x;
 	float m_rot_y;
 	float m_rot_z;
-	
+	bool m_init;
 	bool m_move;
 	bool m_rot;
 	bool m_read;
@@ -55,4 +56,7 @@ public:
 	double deltaTime;
 	float speed;
 	CWnd *wnd;
+	std::thread t;
+
+
 };

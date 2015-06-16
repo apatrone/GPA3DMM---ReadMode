@@ -1,6 +1,5 @@
 TODO:
 
-Too many file reads, how the fuck is the data stored?
 click on frame=activates it for mousewheel, etc.
 checkbox for moving both
 checkbox for align one view to the other
@@ -10,13 +9,17 @@ attention aux accès concurrents dans ReadModeDlg!! toutes les modifs sur m_z, et
 gérer la rotation en tenant compte des fps
 
 nettoyer les variables avant de reloader un objet sur la meme frame
-pour gérer les mvts une équation serait mieux! c'est sacadé là !
 
 ça serait mieux que wasd controle la camera et la souris controle la position de l'objet
 sinon faire wasd pour objet et fleches pour camera?
 
-enlever leson quand ça tourne! depuis quand c'est comme ça :/
 
-ptet que le prob du thread c'est quand on fait m-rot draw?à debugger
+
+gérer multikey!! pourri sinon
+
 FAIT:
 faire un thread séparé au lieu d'un timer?!!!non!! draw devrait etre dans un while!!dans un thread
+ptet que le prob du thread c'est quand on fait m-rot draw?à debugger (prob etait qu'il fallait rajouter une ligne  (p->LoadFrame(p->wnd);) opengl au début du thread)
+pour gérer les mvts une équation serait mieux! c'est sacadé là ! (plus sacadé, grace au nouveau readobj)
+Too many file reads, how the fuck is the data stored?
+enlever le son quand ça tourne! depuis quand c'est comme ça :/ (return true quand wm_keydown)

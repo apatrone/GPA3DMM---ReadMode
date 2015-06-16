@@ -3,12 +3,19 @@
 #include <GL/GLAUX.H>
 #include <glm/glm.hpp>
 #include <vector>
+#include <tbb/compat/thread>
+#include <cmath>
+//#include "vector3.h"
+
+
 typedef struct  Vertex        //保存点信息
 {
 	GLfloat x;
 	GLfloat y;
 	GLfloat z;
 	int nVertexIndex;
+	glm::vec3 normal;
+	//std::vector<Vector3> normal;
 } GLVertex ;
 typedef  struct Normal         //保存法线向量信息
 {
@@ -24,6 +31,9 @@ typedef  struct Texture         //保存贴图信息
 	GLfloat  z;
 	int nTextureIndex;
 }GLTexture;
+
+
+
 typedef  struct Face            //保存面信息
 {
 	int Vertex;      //指定顶点索引
@@ -45,26 +55,28 @@ class ReadOBJFile
 public:
 	ReadOBJFile(void);
 	~ReadOBJFile(void);
-public:
+	int EstimateNormals(void);
 	void Draw();
 	bool ReadFile(char * FileNmae);
 	bool ReadLine(FILE *fp,char *str);
-	void GetVertexInfo();
+	void GetInfo();
 	void GetMtlInfo();
-	void GetTextureInfo();
-	void GetNormalInfo();
 	char  m_FileName[256];
 	int m_nCount;
 	GLVertex *m_v;
+	GLVertex *m_vcalc;
 	GLNormal * m_vn;
+	GLNormal *m_calcNorm;
 	GLTexture* m_vt;
 	GLFace  **m_face;
 	GLMtl * m_mtl;
+	Vertex *vertex;
 	int lastj;
 	int length;
 	bool init;
 	int res;
+	int size_m_v;
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
-
+	std::vector<glm::vec3>* normal_buffer;
 };
 

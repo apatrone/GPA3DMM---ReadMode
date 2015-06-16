@@ -2,3 +2,12 @@ OnCtlColor is MFC's way in handling the coloring of the controls and dialog when
 To let MFC know that we want to use this function, go to the Wizard Dialog (CTRL + W). In the Classname and Object ID, select your dialog's class. In the Messages, double-click the WM_CTLCOLOR. It will add OnCtlColor in the Member Functions. Add the code that Kivju gave you and that's it. Run the program and you can see that the text is in red.
 
 ATTENTION: includer la version 10 (visual studio) de tbb!! (vc10) VERSION 32BIT!!
+
+The normals matrix should be the inverse of the transpose of the modelview matrix, i.e.
+nMatrix = mat4_inverse(mat4_transpose(mvMatrix));
+
+9002 faces for 1KDI
+4501 vertices
+but 17000 indexs and some... so when draw, only draw 25%of prote
+en meme temps il ne faut calculer que pour les points étant reliés! j'ai fait n'importe quoi!!!
+p1, p2 et p2 doivent faire un triangle!!!

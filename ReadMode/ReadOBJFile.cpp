@@ -3,6 +3,8 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <vector>
+#include <cmath> //for sqrt
+#include <algorithm> 
 ReadOBJFile::ReadOBJFile(void)
 {
 	memset(this->m_FileName,0,256);
@@ -11,7 +13,7 @@ ReadOBJFile::ReadOBJFile(void)
 	length=0;
 	res=0;
 	init=false;
-
+	size_m_v=0;
 }
 
 
@@ -19,12 +21,14 @@ ReadOBJFile::~ReadOBJFile(void)
 {
 }
 
-void ReadOBJFile::GetVertexInfo()
+void ReadOBJFile::GetInfo()
 {
 	FILE * fp;
 	fp=fopen(this->m_FileName,"rb");
 	char str[256];
 	int nVertex=1;
+	int nTexture=1;
+	int nNormal=1;
 	while (1)
 	{
 		memset(str,0,256);
@@ -62,13 +66,13 @@ void ReadOBJFile::GetVertexInfo()
 						break;
 					}
 				}
-				char *VerteData;
+				char *VertexData;
 				int nCount=n2-n1;
-				VerteData=new char[nCount+1];
-				memset(VerteData,0,nCount+1);
-				strncpy(VerteData,str+n1,nCount);
+				VertexData=new char[nCount+1];
+				memset(VertexData,0,nCount+1);
+				strncpy(VertexData,str+n1,nCount);
 				float ff;
-				sscanf(VerteData,"%f",&ff);
+				sscanf(VertexData,"%f",&ff);
 				switch(flag)
 				{
 				case 1:
@@ -83,25 +87,12 @@ void ReadOBJFile::GetVertexInfo()
 				}
 				flag++;
 				n1=n2+1;
-				delete VerteData;
+				delete VertexData;
 			}
-
+			size_m_v++;
 			nVertex++;
 		}
-	}
-}
-void ReadOBJFile::GetTextureInfo()
-{
-	FILE *fp;
-	fp=fopen(this->m_FileName,"rb");
-	char str[256];
-	int nTexture=1;
-	while(1)
-	{
-		memset(str,0,256);
-		if(!this->ReadLine(fp,str))
-			break;
-		if(str[0]=='v'&&str[1]=='t'&&str[2]==' ')
+		else if(str[0]=='v'&&str[1]=='t'&&str[2]==' ')
 		{
 			int nEdge=0;
 			for(int x=0;str[x]!='\0';x++)
@@ -164,20 +155,7 @@ void ReadOBJFile::GetTextureInfo()
 			}
 			nTexture++;
 		}
-	}
-}
-void ReadOBJFile::GetNormalInfo()
-{
-	FILE *fp;
-	fp=fopen(this->m_FileName,"rb");
-	char str[256];
-	int nNormal=1;
-	while(1)
-	{
-		memset(str,0,256);
-		if(!this->ReadLine(fp,str))
-			break;
-		if(str[0]=='v'&&str[1]=='n'&&str[2]==' ')
+		else if(str[0]=='v'&&str[1]=='n'&&str[2]==' ')
 		{
 			if(nNormal==1)
 				this->m_vn=(Normal*)malloc(sizeof(Normal));
@@ -235,6 +213,7 @@ void ReadOBJFile::GetNormalInfo()
 
 	}
 }
+
 void ReadOBJFile::GetMtlInfo()
 {
 	FILE *fp;
@@ -246,7 +225,7 @@ void ReadOBJFile::GetMtlInfo()
 	while (1)
 	{
 		memset(str,0,256);
-		if (!this->ReadLine(fp,str))
+		if (this->ReadLine(fp,str)==false)
 			break;
 		if(strncmp("mtllib",str,6)==0)
 		{
@@ -470,9 +449,8 @@ bool ReadOBJFile::ReadFile(char *FileName)
 		return false;
 	strcpy(this->m_FileName,FileName);
 	fclose(fp);
-	this->GetVertexInfo();
-	this->GetTextureInfo();
-	this->GetNormalInfo();
+	this->GetInfo();
+
 	this->GetMtlInfo();
 }
 bool ReadOBJFile::ReadLine(FILE *fp,char *str)
@@ -498,7 +476,7 @@ bool ReadOBJFile::ReadLine(FILE *fp,char *str)
 void ReadOBJFile::Draw()
 {
 
-	if(!init){
+	if(init==false){
 		bool vn=false; bool vt=false;
 		FILE * fp;
 		fp=fopen(this->m_FileName,"rb");
@@ -507,7 +485,7 @@ void ReadOBJFile::Draw()
 		while(1)
 		{
 			memset(str,0,256);
-			if (!this->ReadLine(fp,str))
+			if (this->ReadLine(fp,str)==false)
 				break;
 			if (strncmp("usemtl",str,6)==0)
 			{
@@ -666,21 +644,147 @@ void ReadOBJFile::Draw()
 
 		}
 		init=true;
+		//if (vn==false)  //commented for test purposes
+			EstimateNormals();
 		res=(vt==true)+2*(vn==true); 
 	}
 	else 
 	{
+		
 		::glBegin(GL_TRIANGLES);
-		for(int i=0; i<vertexIndices.size(); i++){			
+		for(int i=0; i<vertexIndices.size(); i++){	
+			res=1; //affected for test purposes
 			if(res>=2)
 				::glNormal3f(this->m_vn[normalIndices[i]].x,this->m_vn[normalIndices[i]].y,this->m_vn[normalIndices[i]].z);
-			if(res==1)
+			else{
+				::glNormal3f(m_vcalc[i%size_m_v].normal.x, m_vcalc[i%size_m_v].normal.y,m_vcalc[i%size_m_v].normal.z);
+			}	//%size_m_v for test
+			if(res==1 || res==3 )
 				::glTexCoord3f(this->m_vt[uvIndices[i]].x,this->m_vt[uvIndices[i]].y,this->m_vt[uvIndices[i]].z);
 			
 			::glVertex3f(m_v[vertexIndices[i]].x,this->m_v[vertexIndices[i]].y,this->m_v[vertexIndices[i]].z);			
 		}
-		glEnd();
+
+		::glEnd();
 		
+	
 	}
+	
 
 }	
+
+
+
+int ReadOBJFile::EstimateNormals(void)
+{
+
+	
+normal_buffer = new std::vector<glm::vec3>[vertexIndices.size()];
+
+ for( int i = 0; i < vertexIndices.size(); i += 3 )
+{
+	// get the three vertices that make the faces
+	glm::vec3 p1 = glm::vec3(m_v[vertexIndices[i+0]].x, m_v[vertexIndices[i+0]].y, m_v[vertexIndices[i+0]].z);
+	glm::vec3 p2 = glm::vec3(m_v[vertexIndices[i+1]].x, m_v[vertexIndices[i+1]].y, m_v[vertexIndices[i+1]].z);
+	glm::vec3 p3 =  glm::vec3(m_v[vertexIndices[i+2]].x, m_v[vertexIndices[i+2]].y, m_v[vertexIndices[i+2]].z);
+ 
+	glm::vec3 v1 = p2 - p1;
+	glm::vec3 v2 = p3 - p1; 
+	//cross
+	glm::vec3 normal = glm::vec3((v1.y * v2.z) - (v1.z * v2.y),
+						(v1.z * v2.x) - (v1.x* v2.z),
+						(v1.x* v2.y) - (v1.y * v2.x));
+
+	//normalize
+   float length = normal.x * normal.x + normal.y * normal.y + normal.z * normal.z;
+   length = sqrt(length);
+   normal.x /= length; normal.y /= length; normal.z /= length;
+ 
+   // Store the face's normal for each of the vertices that make up the face.
+   normal_buffer[vertexIndices[i+0]].push_back( normal );
+   normal_buffer[vertexIndices[i+1]].push_back( normal );
+   normal_buffer[vertexIndices[i+2]].push_back( normal );
+ }
+
+ m_vcalc=(GLVertex *)malloc(sizeof(GLVertex)*vertexIndices.size());
+ // Now loop through each vertex vector, and avarage out all the normals stored.
+ for( int i = 0; i < size_m_v/*vertexIndices.size()*/ ; ++i )   //900 tjr pas de réécriture  ... mais réécriture sur m_vn avant 925, mais pas sur uvindices
+ {
+	
+	m_vcalc[i].x=m_v[i].x; m_vcalc[i].y=m_v[i].y; m_vcalc[i].z=m_v[i].z;
+	m_vcalc[i].normal=glm::vec3(0,0,0);
+   for( int j = 0; j < normal_buffer[i].size(); ++j ){	  
+	 m_vcalc[i].normal += normal_buffer[i][j];
+   }
+	m_vcalc[i].normal /= normal_buffer[i].size();
+
+ }
+ return true;
+}
+
+/*
+struct Vector3
+ {
+    float X, Y, Z;
+ 
+	Vector3(){}
+     Vector3(float x, float y, float z)
+    {
+       X = x; Y = y; Z = z;
+    }
+ 
+	Vector3 Cross(Vector3 v1, Vector3 v2)
+    {
+       Vector3 result;
+       result.X = (v1.Y * v2.Z) - (v1.Z * v2.Y);
+       result.Y = (v1.Z * v2.X) - (v1.X * v2.Z);
+       result.Z = (v1.X * v2.Y) - (v1.Y * v2.X);
+       return result;
+    }
+	Vector3 Normalize(Vector3 v1)
+    {
+        float length = v1.X * v1.X + v1.Y * v1.Y + v1.Z * v1.Z;
+        length = sqrt(length);
+        v1.X /= length; v1.Y /= length; v1.Z /= length;
+    }
+	Vector3& Vector3::operator-=(const Vector3& vector)
+    {
+            X -= vector.X;
+            Y -= vector.Y;
+            Z -= vector.Z;
+            return *this;
+    }
+ };*/
+
+
+
+/*
+std::vector<Vector3>* normal_buffer = new std::vector<Vector3>[vertexIndices.size()];
+ 
+ for( int i = 0; i < vertexIndices.size(); i += 3 )
+ {
+   // get the three vertices that make the faces
+   Vector3 p1 = Vector3(m_v[vertexIndices[i+0]].x,m_v[vertexIndices[i+0]].y,m_v[vertexIndices[i+0]].z); 
+   Vector3 p2 = Vector3(m_v[vertexIndices[i+1]].x,m_v[vertexIndices[i+1]].y,m_v[vertexIndices[i+1]].z); 
+   Vector3 p3 =  Vector3(m_v[vertexIndices[i+2]].x,m_v[vertexIndices[i+2]].y,m_v[vertexIndices[i+2]].z); 
+ 
+   Vector3 v1 = p2 - p1;
+   Vector3 v2 = p3 - p1;
+   Vector3 normal = v1.Cross( v1,v2 );
+ 
+   normal.Normalize(normal);
+ 
+   // Store the face's normal for each of the vertices that make up the face.
+   normal_buffer[vertexIndices[i+0]].push_back( normal );
+   normal_buffer[vertexIndices[i+1]].push_back( normal );
+   normal_buffer[vertexIndices[i+2]].push_back( normal );
+ }
+ 
+ 
+ // Now loop through each vertex vector, and avarage out all the normals stored.
+ for( int i = 0; i < vertexIndices.size(); ++i )
+ {
+   for( int j = 0; j < normal_buffer[i].size(); ++j )
+     m_v[i].normal += normal_buffer[i][j];
+   
+   m_v[i].normal /= normal_buffer[i].size();*/

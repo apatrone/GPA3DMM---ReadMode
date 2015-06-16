@@ -7,6 +7,7 @@
 #include <GL/glew.h>
 #include "shader.hpp"
 #include "controls.hpp"
+
 ProteinFrame::ProteinFrame(void)
 {
 	m_x=0;
@@ -14,7 +15,7 @@ ProteinFrame::ProteinFrame(void)
 	m_z=-10.0;
 	m_move=false;
 	m_read=false;
-
+	m_init=false;
 	m_rot_x=0;
 	m_rot_y=0;
 	m_rot_z=0;
@@ -36,29 +37,94 @@ int ProteinFrame::LoadProtein(char *path){
 		delete m_rof;
 		m_rof=NULL;
 	}*/
-	if(flag_threadCreated){
+	if(flag_threadCreated==true){
 		kill_thread=true;
 		while(kill_thread){};
 		Reset();
-		flag_threadCreated=false;
 	}
 	m_rof=new ReadOBJFile();
 	m_rof->ReadFile(path);
-
-	//bool res = loadOBJ(path, vertices, uvs, normals);
+	//int res = loadOBJ(path, vertices, uvs, normals);
 
 	flag=true;
 	return 1;
 }
 
-bool MyThread(ProteinFrame *p)
-{
-	p->LoadFrame(p->wnd);
-	while(!p->kill_thread){
+void* MyThread(ProteinFrame *p)
+{	
+
+/*	GLfloat ambient[]={0.5f,0.5f,0.5f,1.0f};
+	GLfloat diffuse[]={1.0f,1.0f,1.0f,1.0f};
+	GLfloat specular[]={1.0f,1.0f,1.0f,1.0f};
+	GLfloat position[]={0.0f,0.0f,0.0f,1.0f};
+
+	GLfloat ambient1[]={0.0f,0.1f,0.8f,1.0f};
+	GLfloat diffuse1[]={0.0f,0.3f,0.6f,1.0f};
+	GLfloat specular1[]={1.0f,0.0f,1.0f,1.0f};
+	GLfloat shininess[]={10.0f};
+	
+	
+	PIXELFORMATDESCRIPTOR pfd={sizeof(PIXELFORMATDESCRIPTOR),1,PFD_SUPPORT_OPENGL|PFD_DRAW_TO_WINDOW|PFD_DOUBLEBUFFER,PFD_TYPE_RGBA,32,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,PFD_MAIN_PLANE,0,0,0,0};
+
+	
+	p->pDC=p->wnd->GetDC();
+
+	int PixelFormat=::ChoosePixelFormat(p->pDC->m_hDC,&pfd);
+	::SetPixelFormat(p->pDC->m_hDC,PixelFormat,&pfd);
+	//save protein frame context 
+	p->m_hRC=::wglCreateContext(p->pDC->m_hDC);
+	::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC); 
+	
+	CRect rect;
+	p->wnd->GetClientRect(rect);
+
+	::glViewport(0,0,rect.Width(),rect.Height()); //重置当前视口
+	::glEnable(GL_CULL_FACE);
+	::glMatrixMode(GL_PROJECTION);//选择投影矩阵
+	::glLoadIdentity(); //重置投影矩阵
+	::gluPerspective(45.0,rect.Width()/rect.Height(),0.1,1000.0);
+	
+	::glMatrixMode(GL_MODELVIEW);   //选择模型观察矩阵
+	::glLoadIdentity();
+	
+	::glShadeModel(GL_SMOOTH);  //启用阴影平滑
+	::glClearColor(1.0f,1.0f,1.0f,0.3f); //设置黑色背景
+	
+	::glClearDepth(1.0f);  //设置深度缓存
+	::glEnable(GL_DEPTH_TEST); //启用深度测试
+	::glDepthFunc(GL_LESS);// 所作深度测试类型
+	/*::glLightfv(GL_LIGHT1,GL_AMBIENT,ambient);
+	::glLightfv(GL_LIGHT1,GL_DIFFUSE,diffuse);
+	::glLightfv(GL_LIGHT1,GL_SPECULAR,specular);
+	::glLightfv(GL_LIGHT1,GL_POSITION,position);
+	::glLightfv(GL_FRONT_AND_BACK,GL_AMBIENT,ambient1);
+	::glLightfv(GL_FRONT_AND_BACK,GL_DIFFUSE,diffuse1);
+	::glLightfv(GL_FRONT_AND_BACK,GL_SPECULAR,specular1);
+	::glLightfv(GL_FRONT_AND_BACK,GL_POSITION,shininess);
+	::glEnable(GL_LIGHTING);
+	::glEnable(GL_LIGHT1);
+	//设置光照
+	glEnable(GL_LIGHTING);  
+    glEnable(GL_LIGHT0);  
+	
+	const GLfloat lightAmbient[]  = {0.08, 0.08, 0.08, 1.0};  
+	const GLfloat lightDiffuse[]  = {1.0, 1.0, 1.0, 1.0};  
+	const GLfloat lightSpecular[]  = {1.0, 1.0, 1.0, 1.0};  
+	const GLfloat lightPosition[] = {25, 25, 25, 0.0}; 
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);  
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);  
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);  
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition); */
+	
+	
+	p->LoadFrame(p->wnd);///////////////////////////////////////////////////////////////////
+
+	while(p->kill_thread==false){
 		::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
 	
-		if(p->flag){
-			//p->LoadFrame(p->wnd);
+		//if(p->flag){
+			glDrawBuffer(GL_FRONT_AND_BACK);
 			::glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 			::glLoadIdentity();
 			//::glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
@@ -76,15 +142,15 @@ bool MyThread(ProteinFrame *p)
 			glEnable(GL_COLOR_MATERIAL);//启用材质颜色跟踪当前颜色
 			p->m_rof->Draw();
 			::glPopMatrix();
-			//::glEnable(GL_DEPTH_TEST);
-			::glFlush();
+			::glEnable(GL_DEPTH_TEST);
+			::glFlush();//::glFinish();
 			::SwapBuffers(p->pDC->m_hDC);
-		}
-		
+			glDrawBuffer(GL_BACK);
+	//	}		
 	}
 	p->kill_thread=false;
-
-	/*::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
+	p->flag_threadCreated=false;
+/*	::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
 
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
@@ -212,21 +278,30 @@ bool MyThread(ProteinFrame *p)
 	glDeleteBuffers(1, &normalbuffer);
 	glDeleteProgram(programID);
 
-	glDeleteVertexArrays(1, &VertexArrayID);
-	*/
-	return 1;
+	glDeleteVertexArrays(1, &VertexArrayID);*/
+	
+	return (void*)1;
 }
 
-void ProteinFrame::Draw(void)
+bool ProteinFrame::Draw(void)
 {	
-	//glewExperimental = true; // Needed for core profile
-	//if (glewInit() != GLEW_OK) {
-	//	fprintf(stderr, "Failed to initialize GLEW\n");
-	//	return ;
-	//}
-	if(!flag_threadCreated){
-		std::thread t(MyThread, this);
+	/*LoadFrame(wnd);
+	glewExperimental=TRUE;
+	GLenum err=glewInit();
+//	glewExperimental = true; // Needed for core profile
+	if (glewInit() != GLEW_OK) {
+		fprintf(stderr, "Failed to initialize GLEW\n");
+		return false ;
+	}*/
+
+	//std::thread thread(MyThread, this);
+	//thread.join();
+//	return true;
+
+	if(flag_threadCreated==false){
+		std::thread thread(MyThread, this);
 		std::thread::id id; id=t.get_id();
+		//pthread_create(&thread,NULL, MyThread, (void *)this);
 		flag_threadCreated=true;
 		kill_thread=false;
 	}
@@ -237,10 +312,10 @@ void ProteinFrame::Draw(void)
 		std::thread thread(MyThread, this);
 		kill_thread=false;
 	}
-
-
+	return true;
+	/*LoadFrame(wnd);
 	//define protein frame as curent context 
-/*	::wglMakeCurrent(pDC->m_hDC,m_hRC);
+	::wglMakeCurrent(pDC->m_hDC,m_hRC);
 		if(flag){
 			::glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 			::glLoadIdentity();
@@ -259,7 +334,7 @@ void ProteinFrame::Draw(void)
 			glEnable(GL_COLOR_MATERIAL);//启用材质颜色跟踪当前颜色
 			m_rof->Draw();
 			::glPopMatrix();
-			//::glEnable(GL_DEPTH_TEST);
+			::glEnable(GL_DEPTH_TEST);
 			::glFlush();
 			::SwapBuffers(pDC->m_hDC);
 		}*/
@@ -273,7 +348,7 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 {
 	
 // TODO: Add extra initialization here
-	/*GLfloat ambient[]={0.5f,0.5f,0.5f,1.0f};
+	GLfloat ambient[]={0.5f,0.5f,0.5f,1.0f};
 	GLfloat diffuse[]={1.0f,1.0f,1.0f,1.0f};
 	GLfloat specular[]={1.0f,1.0f,1.0f,1.0f};
 	GLfloat position[]={0.0f,0.0f,0.0f,1.0f};
@@ -281,22 +356,24 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 	GLfloat ambient1[]={0.0f,0.1f,0.8f,1.0f};
 	GLfloat diffuse1[]={0.0f,0.3f,0.6f,1.0f};
 	GLfloat specular1[]={1.0f,0.0f,1.0f,1.0f};
-	GLfloat shininess[]={10.0f};*/
+	GLfloat shininess[]={10.0f};
 	
-	
-	PIXELFORMATDESCRIPTOR pfd={sizeof(PIXELFORMATDESCRIPTOR),1,PFD_SUPPORT_OPENGL|PFD_DRAW_TO_WINDOW|PFD_DOUBLEBUFFER,PFD_TYPE_RGBA,32,
+	if(m_init==false){
+		PIXELFORMATDESCRIPTOR pfd={sizeof(PIXELFORMATDESCRIPTOR),1,PFD_SUPPORT_OPENGL|PFD_DRAW_TO_WINDOW|PFD_DOUBLEBUFFER,PFD_TYPE_RGBA,32,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,PFD_MAIN_PLANE,0,0,0,0};
+		m_init=true;
 	
-	wnd=pDlg;
 	
-	pDC=pDlg->GetDC();
+		wnd=pDlg;
+	
+		pDC=pDlg->GetDC();
 
-	int PixelFormat=::ChoosePixelFormat(pDC->m_hDC,&pfd);
-	::SetPixelFormat(pDC->m_hDC,PixelFormat,&pfd);
-	//save protein frame context 
-	m_hRC=::wglCreateContext(pDC->m_hDC);
-	::wglMakeCurrent(pDC->m_hDC,m_hRC); 
-	
+		int PixelFormat=::ChoosePixelFormat(pDC->m_hDC,&pfd);
+		::SetPixelFormat(pDC->m_hDC,PixelFormat,&pfd);
+		//save protein frame context 
+		m_hRC=::wglCreateContext(pDC->m_hDC);
+		::wglMakeCurrent(pDC->m_hDC,m_hRC); 
+	}
 	CRect rect;
 	pDlg->GetClientRect(rect);
 
@@ -342,7 +419,7 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 	//::glEnable(GL_LINE_SMOOTH);
 	//::glEnable(GL_POLYGON_SMOOTH);
 	//::glEnable(GL_BLEND);
-   // ::glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	//::glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	//::glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 	//::glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 }
@@ -355,8 +432,8 @@ void ProteinFrame::KeyInput(int wParam, int nTimes){
 	
 	switch(wParam){
 		case (int)'W': case (int)'Z':  case VK_UP: 
-			m_rot_x+=deltaTime*speed;  //more fluid but only object on the right moves, wtf
-			m_rot_x+=y+nTimes/10000000000;
+			m_rot_x+=deltaTime*speed;  //more fluid but only object on the left moves, wtf
+			//m_rot_x+=y+nTimes/10000000000;
 			//m_z+=deltaTime*nTimes/1000000000;
 			//m_z+=z+nTimes/10000000000;			
 			break;
@@ -395,5 +472,13 @@ void ProteinFrame::Reset(void){
 	m_AutoRotation=false;
 	flag_threadCreated=false;
 	kill_thread=false;
+	//m_init=false;
+}
+
+bool ProteinFrame::Kill(void)
+{
+	kill_thread=true;
+	while(kill_thread==false){}
+	return true;
 
 }

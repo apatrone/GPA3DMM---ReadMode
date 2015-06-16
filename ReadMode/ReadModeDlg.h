@@ -77,5 +77,7 @@ public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult);
 	CSliderCtrl m_SpeedSlider;
-
+	bool m_init;
+	afx_msg void OnStnClickedFrame1();
+	CStatic frame1;
 };
