@@ -22,6 +22,8 @@ ReadOBJFile::ReadOBJFile(bool useNE)
 	size_m_v=0;
 	useNormalEstimation=useNE;
 	vn=false;  vt=false;
+	gauss_inf=10;
+	gauss_sup=60;
 }
 
 
@@ -661,9 +663,20 @@ void ReadOBJFile::Draw()
 	}
 	else 
 	{
+		int m=0, n=0, o=0;
 		::glBegin(GL_TRIANGLES);
 		for(int i=0; i<vertexIndices.size(); i++)
 		{	
+			if(m_vcalc[vertexIndices[i]].kG>gauss_sup)  
+			{::glColor3f(0.5f,1.0f,0.0f); m++;} //green
+			else if(m_vcalc[vertexIndices[i]].kG<gauss_inf) 
+			{::glColor3f(0.5f,0.0f,0.5f); n++;}  //mauve
+			else{
+				::glColor3f(0.0f,1.0f,1.0f); //turquoise
+				o++;
+			}
+
+
 			if(res>=2 && useNormalEstimation==false)  //if not using estimated normals
 				::glNormal3f(this->m_vn[normalIndices[i]].x,this->m_vn[normalIndices[i]].y,this->m_vn[normalIndices[i]].z);
 			else
@@ -823,8 +836,8 @@ void ReadOBJFile::EstimatekGkM(void)
 				sum_area+=area;
 				normal = cross(v1, v2);
 				//dihedral angle = angle between triangle normals --> for kM
-				if(j>1 )
-				{ 
+				if(j>1 )   //this part of the algorithm is probably false because the edges are not ordered! so we are calculation maybe angle(ei, ei+6)
+				{				//They should be ordered according to the angle they make with e0
 					dihedral_angle=GetAngle(previous_normal, normal);
 					previous_normal=normal;
 					sum_dihedral_angles+=dihedral_angle;
@@ -861,13 +874,13 @@ float ReadOBJFile::GetAngle(glm::vec3 v1, glm::vec3 v2){
 
 }
 
-float ReadOBJFile::GetArea(glm::vec3 v1, glm::vec3 v2)  //Equiv to glm::dot?
+float ReadOBJFile::GetArea(glm::vec3 v1, glm::vec3 v2)  //Equiv to glm::dot? not the same result 
 {
 	//glm::vec3 v1= glm::vec3(-3,1,-7); //for test 
 	//glm::vec3 v2= glm::vec3(0,-5,-5); //for test
-
 	glm::vec3 v = GetCrossProduct(v1,v2);
 	float area= 0.5* sqrt( v.x * v.x + v.y * v.y + v.z * v.z );  //half the absolute value of the cross product
+	//float k= glm::dot(v1,v2) ; for test...
 	return area;
 }
 

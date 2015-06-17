@@ -11,7 +11,7 @@
 #include <GL/glut.h>
 #include "Resource.h"
 #include <math.h>
-
+#include <cstring>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -72,6 +72,8 @@ void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_FRAME1, frame1);
 	DDX_Control(pDX, IDC_CHECK1, m_checkbox1);
 	DDX_Control(pDX, IDC_CHECK2, m_checkbox2);
+	DDX_Control(pDX, IDC_GAUSS_INF, gauss_inf);
+	DDX_Control(pDX, IDC_GAUSS_SUP, gauss_sup);
 }
 BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
@@ -102,6 +104,11 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK1, &CReadModeDlg::OnBnClickedCheck1)
 	ON_BN_CLICKED(IDC_CHECK2, &CReadModeDlg::OnBnClickedCheck2)
 	ON_EN_CHANGE(IDC_INFO, &CReadModeDlg::OnEnChangeInfo)
+//	ON_EN_CHANGE(IDC_GAUSS_INF, &CReadModeDlg::OnEnChangeGaussInf)
+//	ON_EN_CHANGE(IDC_GAUSS_SUP, &CReadModeDlg::OnEnChangeGaussSup)
+	ON_EN_KILLFOCUS(IDC_GAUSS_INF, &CReadModeDlg::OnKillfocusGaussInf)
+	ON_EN_KILLFOCUS(IDC_GAUSS_SUP, &CReadModeDlg::OnKillfocusGaussSup)
+	ON_EN_CHANGE(IDC_GAUSS_INF, &CReadModeDlg::OnChangeGaussInf)
 END_MESSAGE_MAP()
 
 
@@ -129,8 +136,7 @@ BOOL CReadModeDlg::OnInitDialog()
 			pSysMenu->AppendMenu(MF_SEPARATOR);
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
-		m_infobox_handle=GetDlgItem(IDC_INFO);
-		
+	
 	}
 
 	// Set the icon for this dialog.  The framework does this automatically
@@ -144,7 +150,14 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_move=0;
 	protein1->wnd=CWnd::GetDlgItem(IDC_FRAME1);
 	protein2->wnd=CWnd::GetDlgItem(IDC_SHOW2);
+	m_infobox_handle=GetDlgItem(IDC_INFO);
+	m_gauss_inf_handle=GetDlgItem(IDC_GAUSS_INF);
+	m_gauss_sup_handle=GetDlgItem(IDC_GAUSS_SUP);
 	::SetFocus(::GetActiveWindow());
+	gauss_inferior=10;
+	gauss_superior=60;
+	m_gauss_inf_handle->SetWindowTextW(_T("10"));
+	m_gauss_sup_handle->SetWindowTextW(_T("60"));
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 void CReadModeDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -252,6 +265,10 @@ void CReadModeDlg::OnBnClickedReadm()
 		m_infobox_handle->SetWindowTextW(_T("No normal information in this file"));
 	}
 	else m_infobox_handle->SetWindowTextW(_T(""));
+	if(protein2->m_rof != NULL){
+		protein2->m_rof->gauss_inf = gauss_inferior;
+		protein2->m_rof->gauss_sup = gauss_superior;
+	}
 	//SetTimer(1,100,NULL);
 	::SetFocus(::GetActiveWindow());
 }
@@ -280,6 +297,11 @@ void CReadModeDlg::OnBnClickedReadm2()
 		m_infobox_handle->SetWindowTextW(_T("No normal information in this file"));
 	}
 	else m_infobox_handle->SetWindowTextW(_T(""));
+	if(protein2->m_rof != NULL){
+		protein2->m_rof->gauss_inf = gauss_inferior;
+		protein2->m_rof->gauss_sup = gauss_superior;
+	}
+	
 	//SetTimer(1,100,NULL);
 	::SetFocus(::GetActiveWindow());
 }
@@ -514,13 +536,15 @@ BOOL CReadModeDlg::PreTranslateMessage(MSG* pMsg)
 	// TODO: Add your specialized code here and/or call the base class
 
 	if(pMsg->message==WM_KEYDOWN){
-		if(protein1->m_rof!=NULL &&(m_move==1 || m_move==2) ){
-			protein1->KeyInput(pMsg->wParam, pMsg->lParam);
+		if(GetFocus()!= GetDlgItem(IDC_GAUSS_INF )&& GetFocus()!= GetDlgItem(IDC_GAUSS_SUP )){
+			if(protein1->m_rof!=NULL &&(m_move==1 || m_move==2) ){
+				protein1->KeyInput(pMsg->wParam, pMsg->lParam);
+			}
+			if(protein2->m_rof!=NULL&& (m_move==1|| m_move==3)){
+				protein2->KeyInput(pMsg->wParam,pMsg->lParam);
+			}
+			return true;
 		}
-		if(protein2->m_rof!=NULL&& (m_move==1|| m_move==3)){
-			protein2->KeyInput(pMsg->wParam,pMsg->lParam);
-		}
-		return true;
 	}
 
 	return CDialogEx::PreTranslateMessage(pMsg);
@@ -596,6 +620,79 @@ void CReadModeDlg::OnBnClickedCheck2()
 
 
 void CReadModeDlg::OnEnChangeInfo()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialogEx::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
+}
+
+
+//void CReadModeDlg::OnEnChangeGaussInf()
+//{
+//	// TODO:  If this is a RICHEDIT control, the control will not
+//	// send this notification unless you override the CDialogEx::OnInitDialog()
+//	// function and call CRichEditCtrl().SetEventMask()
+//	// with the ENM_CHANGE flag ORed into the mask.
+//	float val=m_gauss_inf_handle->getva
+//	// TODO:  Add your control notification handler code here
+//}
+
+
+//void CReadModeDlg::OnEnChangeGaussSup()
+//{
+//	// TODO:  If this is a RICHEDIT control, the control will not
+//	// send this notification unless you override the CDialogEx::OnInitDialog()
+//	// function and call CRichEditCtrl().SetEventMask()
+//	// with the ENM_CHANGE flag ORed into the mask.
+
+//	// TODO:  Add your control notification handler code here
+//}
+
+
+void CReadModeDlg::OnKillfocusGaussInf()
+{
+	// TODO: Add your control notification handler code here
+	CString inf;
+	m_gauss_inf_handle->GetWindowTextW(inf);
+	if(::StrToIntW(inf)<gauss_superior)
+		gauss_inferior = ::StrToIntW(inf);
+	else{
+		m_infobox_handle->SetWindowTextW(_T("This value is not inferior to the sup value"));	
+		gauss_inferior = gauss_superior - 1; 
+		CString tmp;
+		tmp.Format(_T("%d"), gauss_inferior);	
+		m_gauss_inf_handle->SetWindowTextW(tmp);
+	}
+	if(protein1->m_rof != NULL) protein1->m_rof->gauss_inf = gauss_inferior;
+	if(protein2->m_rof != NULL) protein2->m_rof->gauss_inf = gauss_inferior;
+	::SetFocus(::GetActiveWindow());
+}
+
+
+void CReadModeDlg::OnKillfocusGaussSup()
+{
+	// TODO: Add your control notification handler code here
+	CString sup;
+	m_gauss_sup_handle->GetWindowTextW(sup);
+	if(gauss_inferior<::StrToIntW(sup))
+		gauss_superior= ::StrToIntW(sup);
+	else{
+		m_infobox_handle->SetWindowTextW(_T("This value is not superior to the inf value"));	
+		gauss_superior =gauss_inferior +1;
+		CString tmp;
+		tmp.Format(_T("%d"), gauss_superior);	
+		m_gauss_sup_handle->SetWindowTextW(tmp);
+	}
+	if(protein1->m_rof != NULL) protein1->m_rof->gauss_sup = gauss_superior;
+	if(protein2->m_rof != NULL) protein2->m_rof->gauss_sup = gauss_superior;
+	::SetFocus(::GetActiveWindow());
+}
+
+
+void CReadModeDlg::OnChangeGaussInf()
 {
 	// TODO:  If this is a RICHEDIT control, the control will not
 	// send this notification unless you override the CDialogEx::OnInitDialog()

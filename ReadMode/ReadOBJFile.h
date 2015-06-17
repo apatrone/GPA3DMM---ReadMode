@@ -15,7 +15,7 @@ typedef struct  Vertex        //保存点信息
 	GLfloat z;
 	int nVertexIndex;
 	glm::vec3 normal; //vertex normal
-	float kG;  //gaussian curvature
+	float kG;  //discrete gaussian curvature
 	float kM;  //discrete mean curvature
 	
 	//std::vector<Vector3> normal;
@@ -88,5 +88,7 @@ public:
 	bool useNormalEstimation;
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 	std::vector<glm::vec3>* normal_buffer;
+	int gauss_sup;
+	int gauss_inf;
 };
 

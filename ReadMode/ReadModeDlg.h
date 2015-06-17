@@ -70,6 +70,8 @@ public:
 	CComboBox m_ComboMove;
 	CString m_infoBox;
 	CWnd *m_infobox_handle;
+	CWnd *m_gauss_inf_handle;
+	CWnd *m_gauss_sup_handle;
 	CEdit m_info;
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
@@ -85,4 +87,13 @@ public:
 	afx_msg void OnEnChangeInfo();
 	CButton m_checkbox1;
 	CButton m_checkbox2;
+	CEdit gauss_inf;
+	CEdit gauss_sup;
+	int gauss_inferior;
+	int gauss_superior;
+//	afx_msg void OnEnChangeGaussInf();
+//	afx_msg void OnEnChangeGaussSup();
+	afx_msg void OnKillfocusGaussInf();
+	afx_msg void OnKillfocusGaussSup();
+	afx_msg void OnChangeGaussInf();
 };
