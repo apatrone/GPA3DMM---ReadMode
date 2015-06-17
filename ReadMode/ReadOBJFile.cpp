@@ -644,7 +644,7 @@ void ReadOBJFile::Draw()
 
 		}
 		init=true;
-		//if (vn==false)  //commented for test purposes
+		if (vn==false)  //commented for test purposes
 			EstimateNormals();
 		res=(vt==true)+2*(vn==true); 
 	}
@@ -653,12 +653,11 @@ void ReadOBJFile::Draw()
 		
 		::glBegin(GL_TRIANGLES);
 		for(int i=0; i<vertexIndices.size(); i++){	
-			res=1; //affected for test purposes
 			if(res>=2)
 				::glNormal3f(this->m_vn[normalIndices[i]].x,this->m_vn[normalIndices[i]].y,this->m_vn[normalIndices[i]].z);
 			else{
-				::glNormal3f(m_vcalc[i%size_m_v].normal.x, m_vcalc[i%size_m_v].normal.y,m_vcalc[i%size_m_v].normal.z);
-			}	//%size_m_v for test
+				::glNormal3f(m_vcalc[vertexIndices[i]].normal.x, m_vcalc[vertexIndices[i]].normal.y,m_vcalc[vertexIndices[i]].normal.z);
+			}	
 			if(res==1 || res==3 )
 				::glTexCoord3f(this->m_vt[uvIndices[i]].x,this->m_vt[uvIndices[i]].y,this->m_vt[uvIndices[i]].z);
 			
@@ -719,72 +718,47 @@ normal_buffer = new std::vector<glm::vec3>[vertexIndices.size()];
 	m_vcalc[i].normal /= normal_buffer[i].size();
 
  }
+
+	//for(int i=0; i<vertexIndices.size();i+=3)
+	//{
+	//	// get the three vertices that make the faces
+	//	glm::vec3 p1 = glm::vec3(m_v[vertexIndices[i+0]].x, m_v[vertexIndices[i+0]].y, m_v[vertexIndices[i+0]].z);
+	//	glm::vec3 p2 = glm::vec3(m_v[vertexIndices[i+1]].x, m_v[vertexIndices[i+1]].y, m_v[vertexIndices[i+1]].z);
+	//	glm::vec3 p3 =  glm::vec3(m_v[vertexIndices[i+2]].x, m_v[vertexIndices[i+2]].y, m_v[vertexIndices[i+2]].z);
+	 //
+	//	glm::vec3 v1 = p2 - p1;
+	//	glm::vec3 v2 = p3 - p1; 
+	//	//cross
+	//	glm::vec3 normal = glm::vec3((v1.y * v2.z) - (v1.z * v2.y),
+	//						(v1.z * v2.x) - (v1.x* v2.z),
+	//	
+	//						(v1.x* v2.y) - (v1.y * v2.x));
+	//	for(int k=0; k<3; k++){ //for each vertex in face
+	//		for(int j=0; i<vertexIndices.size(); j+=3){
+	//			glm::vec3 pb1 = glm::vec3(m_v[vertexIndices[j+0]].x, m_v[vertexIndices[j+0]].y, m_v[vertexIndices[j+0]].z);
+	//			glm::vec3 pb2 = glm::vec3(m_v[vertexIndices[j+1]].x, m_v[vertexIndices[j+1]].y, m_v[vertexIndices[j+1]].z);
+	//			glm::vec3 pb3 =  glm::vec3(m_v[vertexIndices[j+2]].x, m_v[vertexIndices[j+2]].y, m_v[vertexIndices[j+2]].z);
+	//	
+	//			if(pb1!=p1 || pb2!=p2 || pb3!=p3){ //if not the same face
+	//				glm::vec3 vb1 = pb2 - pb1;
+	//				glm::vec3 vb2 = pb3 - pb1; 
+	//				//cross
+	//				glm::vec3 normalb = glm::vec3((vb1.y * vb2.z) - (vb1.z * vb2.y),
+	//									(vb1.z * vb2.x) - (vb1.x* vb2.z),
+	//	
+	//									(vb1.x* vb2.y) - (vb1.y * vb2.x));
+	//				normal+= normalb ;
+	//			}
+
+	//		}
+	//	}
+	//	 float length = normal.x * normal.x + normal.y * normal.y + normal.z * normal.z;
+	//	 length = sqrt(length);
+	//	 normal.x /= length; normal.y /= length; normal.z /= length;
+
+	//	 m_vcalc[i].normal=normal;
+	//}
+
  return true;
 }
 
-/*
-struct Vector3
- {
-    float X, Y, Z;
- 
-	Vector3(){}
-     Vector3(float x, float y, float z)
-    {
-       X = x; Y = y; Z = z;
-    }
- 
-	Vector3 Cross(Vector3 v1, Vector3 v2)
-    {
-       Vector3 result;
-       result.X = (v1.Y * v2.Z) - (v1.Z * v2.Y);
-       result.Y = (v1.Z * v2.X) - (v1.X * v2.Z);
-       result.Z = (v1.X * v2.Y) - (v1.Y * v2.X);
-       return result;
-    }
-	Vector3 Normalize(Vector3 v1)
-    {
-        float length = v1.X * v1.X + v1.Y * v1.Y + v1.Z * v1.Z;
-        length = sqrt(length);
-        v1.X /= length; v1.Y /= length; v1.Z /= length;
-    }
-	Vector3& Vector3::operator-=(const Vector3& vector)
-    {
-            X -= vector.X;
-            Y -= vector.Y;
-            Z -= vector.Z;
-            return *this;
-    }
- };*/
-
-
-
-/*
-std::vector<Vector3>* normal_buffer = new std::vector<Vector3>[vertexIndices.size()];
- 
- for( int i = 0; i < vertexIndices.size(); i += 3 )
- {
-   // get the three vertices that make the faces
-   Vector3 p1 = Vector3(m_v[vertexIndices[i+0]].x,m_v[vertexIndices[i+0]].y,m_v[vertexIndices[i+0]].z); 
-   Vector3 p2 = Vector3(m_v[vertexIndices[i+1]].x,m_v[vertexIndices[i+1]].y,m_v[vertexIndices[i+1]].z); 
-   Vector3 p3 =  Vector3(m_v[vertexIndices[i+2]].x,m_v[vertexIndices[i+2]].y,m_v[vertexIndices[i+2]].z); 
- 
-   Vector3 v1 = p2 - p1;
-   Vector3 v2 = p3 - p1;
-   Vector3 normal = v1.Cross( v1,v2 );
- 
-   normal.Normalize(normal);
- 
-   // Store the face's normal for each of the vertices that make up the face.
-   normal_buffer[vertexIndices[i+0]].push_back( normal );
-   normal_buffer[vertexIndices[i+1]].push_back( normal );
-   normal_buffer[vertexIndices[i+2]].push_back( normal );
- }
- 
- 
- // Now loop through each vertex vector, and avarage out all the normals stored.
- for( int i = 0; i < vertexIndices.size(); ++i )
- {
-   for( int j = 0; j < normal_buffer[i].size(); ++j )
-     m_v[i].normal += normal_buffer[i][j];
-   
-   m_v[i].normal /= normal_buffer[i].size();*/
