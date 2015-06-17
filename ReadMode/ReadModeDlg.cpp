@@ -70,6 +70,8 @@ void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SLIDER1, m_SpeedSlider);
 
 	DDX_Control(pDX, IDC_FRAME1, frame1);
+	DDX_Control(pDX, IDC_CHECK1, m_checkbox1);
+	DDX_Control(pDX, IDC_CHECK2, m_checkbox2);
 }
 BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
@@ -97,6 +99,9 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_KEYUP()
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER1, &CReadModeDlg::OnCustomdrawSlider1)
 	ON_STN_CLICKED(IDC_FRAME1, &CReadModeDlg::OnStnClickedFrame1)
+	ON_BN_CLICKED(IDC_CHECK1, &CReadModeDlg::OnBnClickedCheck1)
+	ON_BN_CLICKED(IDC_CHECK2, &CReadModeDlg::OnBnClickedCheck2)
+	ON_EN_CHANGE(IDC_INFO, &CReadModeDlg::OnEnChangeInfo)
 END_MESSAGE_MAP()
 
 
@@ -524,4 +529,60 @@ void CReadModeDlg::OnCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
 void CReadModeDlg::OnStnClickedFrame1()
 {
 	// TODO: Add your control notification handler code here
+}
+
+
+void CReadModeDlg::OnBnClickedCheck1()
+{
+	// TODO: Add your control notification handler code here
+	if(protein1->m_rof!=NULL){
+		if(m_checkbox1.GetCheck()){
+			protein1->m_useNE=true;
+			protein1->m_rof->useNormalEstimation=true;
+		}
+		else{
+			protein1->m_useNE=false;
+			protein1->m_rof->useNormalEstimation=false;
+		}
+	}
+	else{
+		if(m_checkbox1.GetCheck())
+			protein1->m_useNE=true;
+		else
+			protein1->m_useNE=false;
+	}
+
+}
+
+
+void CReadModeDlg::OnBnClickedCheck2()
+{
+	// TODO: Add your control notification handler code here
+	if(protein2->m_rof!=NULL){   //if object has already been loaded
+		if(m_checkbox2.GetCheck()){
+			protein2->m_useNE=true;
+			protein2->m_rof->useNormalEstimation=true;
+		}
+		else{
+			protein2->m_useNE=false;
+			protein2->m_rof->useNormalEstimation=false;
+		}
+	}
+	else{								//if object has not been loaded yes
+		if(m_checkbox2.GetCheck())
+			protein2->m_useNE=true;
+		else
+			protein2->m_useNE=false;
+	}
+}
+
+
+void CReadModeDlg::OnEnChangeInfo()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialogEx::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
 }

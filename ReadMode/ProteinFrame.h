@@ -57,6 +57,6 @@ public:
 	float speed;
 	CWnd *wnd;
 	std::thread t;
-
+	bool m_useNE; //normal estimation
 
 };

@@ -80,4 +80,9 @@ public:
 	bool m_init;
 	afx_msg void OnStnClickedFrame1();
 	CStatic frame1;
+	afx_msg void OnBnClickedCheck1();
+	afx_msg void OnBnClickedCheck2();
+	afx_msg void OnEnChangeInfo();
+	CButton m_checkbox1;
+	CButton m_checkbox2;
 };

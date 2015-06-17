@@ -5,7 +5,7 @@
 #include <vector>
 #include <cmath> //for sqrt
 #include <algorithm> 
-ReadOBJFile::ReadOBJFile(void)
+ReadOBJFile::ReadOBJFile(bool useNE)
 {
 	memset(this->m_FileName,0,256);
 	m_nCount=0;
@@ -14,6 +14,7 @@ ReadOBJFile::ReadOBJFile(void)
 	res=0;
 	init=false;
 	size_m_v=0;
+	useNormalEstimation=useNE;
 }
 
 
@@ -644,8 +645,7 @@ void ReadOBJFile::Draw()
 
 		}
 		init=true;
-		if (vn==false)  //commented for test purposes
-			EstimateNormals();
+		EstimateNormals();
 		res=(vt==true)+2*(vn==true); 
 	}
 	else 
@@ -653,7 +653,7 @@ void ReadOBJFile::Draw()
 		
 		::glBegin(GL_TRIANGLES);
 		for(int i=0; i<vertexIndices.size(); i++){	
-			if(res>=2)
+			if(res>=2 && useNormalEstimation==false)
 				::glNormal3f(this->m_vn[normalIndices[i]].x,this->m_vn[normalIndices[i]].y,this->m_vn[normalIndices[i]].z);
 			else{
 				::glNormal3f(m_vcalc[vertexIndices[i]].normal.x, m_vcalc[vertexIndices[i]].normal.y,m_vcalc[vertexIndices[i]].normal.z);

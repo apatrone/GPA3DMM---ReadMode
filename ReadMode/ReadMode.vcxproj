@@ -101,6 +101,7 @@
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />
     <None Include="ReadMe.txt" />
+    <None Include="resource.hm" />
     <None Include="res\ReadMode.ico" />
     <None Include="res\ReadMode.rc2" />
   </ItemGroup>

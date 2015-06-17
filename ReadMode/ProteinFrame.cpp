@@ -28,6 +28,7 @@ ProteinFrame::ProteinFrame(void)
 	flag_threadCreated=false;
 	kill_thread=false;
 	speed=60;
+	m_useNE=false;
 }
 
 int ProteinFrame::LoadProtein(char *path){
@@ -42,7 +43,7 @@ int ProteinFrame::LoadProtein(char *path){
 		while(kill_thread){};
 		Reset();
 	}
-	m_rof=new ReadOBJFile();
+	m_rof=new ReadOBJFile(m_useNE);
 	m_rof->ReadFile(path);
 	//int res = loadOBJ(path, vertices, uvs, normals);
 

@@ -53,7 +53,7 @@ typedef  struct Mtl//保存材质信息
 class ReadOBJFile
 {
 public:
-	ReadOBJFile(void);
+	ReadOBJFile(bool useNE);
 	~ReadOBJFile(void);
 	int EstimateNormals(void);
 	void Draw();
@@ -76,6 +76,7 @@ public:
 	bool init;
 	int res;
 	int size_m_v;
+	bool useNormalEstimation;
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 	std::vector<glm::vec3>* normal_buffer;
 };
