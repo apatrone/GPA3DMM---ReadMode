@@ -235,57 +235,87 @@ void CReadModeDlg::OnBnClickedReadm()
 	//protein1=new ProteinFrame();
 	//protein1->wnd=CWnd::GetDlgItem(IDC_SHOW1);
 	//protein1->LoadFrame(protein1->wnd);
-	if(m_init==false){
-		protein1->LoadProtein(CW2A(pDlg->GetPathName()));		
+	if(protein1->m_rof==NULL){
+		protein1->LoadProtein(CW2A(pDlg->GetPathName()));	
 		protein1->Draw();
 		m_init=true;
 	}
 	else{
 		protein1->kill_thread=true;
-		while(protein1->kill_thread==false){}
+		while(protein1->kill_thread==true){}
 		protein1->LoadProtein(CW2A(pDlg->GetPathName()));		
 		protein1->Draw();
 	}
-
-	//}
-	//protein1->wnd=CWnd::GetDlgItem(IDC_SHOW1);
-	//protein1->wnd->RedrawWindow(rect);
-
-	//
-	m_infobox_handle->SetWindowTextW(_T(""));
+	if(protein1->m_rof->vn==false){  //if no normal information in file, grey out checkbox
+		m_checkbox1.SetCheck(true);
+		CWnd::GetDlgItem(IDC_CHECK1)->EnableWindow(false);
+		m_infobox_handle->SetWindowTextW(_T("No normal information in this file"));
+	}
+	else m_infobox_handle->SetWindowTextW(_T(""));
 	//SetTimer(1,100,NULL);
 	::SetFocus(::GetActiveWindow());
 }
-void CReadModeDlg::OnBnClickedMovem()
+
+
+void CReadModeDlg::OnBnClickedReadm2()
+{
+	CFileDialog *pDlg=new CFileDialog(true);
+	if(pDlg->DoModal()!=IDOK)
+		return;
+
+	if(protein2->m_rof==NULL){
+		protein2->LoadProtein(CW2A(pDlg->GetPathName()));	
+		protein2->Draw();
+		m_init=true;
+	}
+	else{
+		protein2->kill_thread=true;
+		while(protein2->kill_thread==true){}
+		protein2->LoadProtein(CW2A(pDlg->GetPathName()));		
+		protein2->Draw();
+	}
+	if(protein2->m_rof->vn==false){  //if no normal information in file, grey out checkbox
+		m_checkbox2.SetCheck(true);
+		CWnd::GetDlgItem(IDC_CHECK2)->EnableWindow(false);
+		m_infobox_handle->SetWindowTextW(_T("No normal information in this file"));
+	}
+	else m_infobox_handle->SetWindowTextW(_T(""));
+	//SetTimer(1,100,NULL);
+	::SetFocus(::GetActiveWindow());
+}
+
+
+void CReadModeDlg::OnBnClickedMovem()   //mobility model (???)
 {
 	// TODO: Add your control notification handler code here
-	if (protein1->m_read==false)
+	if (protein1->m_rof==NULL)
 	{
 		//AfxMessageBox(_T("请先读取物体!"));
 		m_infobox_handle->SetWindowTextW(_T("Please load an object first"));
 		return;
 	} 
-
-	protein1->m_move=true;
-	protein1->m_AutoRotation=false;
-	protein1->m_rotation=false;
+	else{
+		protein1->m_move=true;
+		protein1->m_AutoRotation=false;
+		protein1->m_rotation=false;
+	}
 	::SetFocus(::GetActiveWindow());
 }
-void CReadModeDlg::OnBnClickedRoatm()
+void CReadModeDlg::OnBnClickedRoatm()//Rotating model
 {
 	// TODO: Add your control notification handler code here
-	if (protein1->m_read==false && protein2->m_read==false)
+	if (protein1->m_rof==NULL &&protein2->m_rof==NULL)
 	{
 		//AfxMessageBox(_T("请先读取物体!"));
 		m_infobox_handle->SetWindowTextW(_T("Please load an object first")); //if no _T writes in chinese
 		return;
 	} 
-	if(protein1->m_read==true){
+	if(protein1->m_rof!=NULL){
 		protein1->m_rotation=true;
 		protein1->m_AutoRotation=true;
 		protein1->m_move=false;
 	}
-	if(protein2->m_read==true){
+	if(protein2->m_rof!=NULL){
 		protein2->m_rotation=true;
 		protein2->m_AutoRotation=true;
 		protein2->m_move=false;
@@ -362,11 +392,11 @@ void CReadModeDlg::OnMouseMove(UINT nFlags, CPoint point)
 BOOL CReadModeDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
 	// TODO: Add your message handler code here and/or call default
-	if(protein1->m_read=true&&(m_move==1 || m_move==2) ){
+	if(protein1->m_rof!=NULL&&(m_move==1 || m_move==2) ){
 		protein1->m_z+=zDelta/120;
 		//protein1->Draw();
 	}
-	if(protein2->m_read=true&&(m_move==1 || m_move==3)){
+	if(protein2->m_rof!=NULL&&(m_move==1 || m_move==3)){
 		protein2->m_z+=zDelta/120;
 		//protein2->Draw();
 	}
@@ -376,7 +406,7 @@ BOOL CReadModeDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 void CReadModeDlg::OnRotation()
 {
 	// TODO: Add your command handler code here
-	if (protein1->m_read==false)
+	if (protein1->m_rof==NULL)
 	{
 		//AfxMessageBox(_T("Please load an object first!"));
 		m_infobox_handle->SetWindowTextW(_T("Please load an object first"));	
@@ -411,30 +441,18 @@ void CAboutDlg::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 
 void CReadModeDlg::OnBnClickedShow()
 {
-	m_move=1;
+	//m_move=1;
 	// TODO: Add your control notification handler code here
 	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnBnClickedShow2()
 {
 	// TODO: Add your control notification handler code here
-	m_move=2;
+	//m_move=2;
 	::SetFocus(::GetActiveWindow());
 }
 
 
-void CReadModeDlg::OnBnClickedReadm2()
-{
-	// TODO: Add your control notification handler code here
-	CFileDialog *pDlg=new CFileDialog(true);
-	if(pDlg->DoModal()!=IDOK)
-		return;
-	protein2->LoadProtein(CW2A(pDlg->GetPathName()));
-	protein2->Draw();
-	//SetTimer(1,100,NULL);
-	m_infobox_handle->SetWindowTextW(_T(""));
-	::SetFocus(::GetActiveWindow());
-}
 
 
 void CReadModeDlg::OnCbnSelchangeCombo1()
@@ -496,10 +514,10 @@ BOOL CReadModeDlg::PreTranslateMessage(MSG* pMsg)
 	// TODO: Add your specialized code here and/or call the base class
 
 	if(pMsg->message==WM_KEYDOWN){
-		if(protein1->m_read=true&&(m_move==1 || m_move==2) ){
+		if(protein1->m_rof!=NULL &&(m_move==1 || m_move==2) ){
 			protein1->KeyInput(pMsg->wParam, pMsg->lParam);
 		}
-		if(protein2->m_read=true&&(m_move==1 || m_move==3)){
+		if(protein2->m_rof!=NULL&& (m_move==1|| m_move==3)){
 			protein2->KeyInput(pMsg->wParam,pMsg->lParam);
 		}
 		return true;
@@ -515,10 +533,10 @@ void CReadModeDlg::OnCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
 	// TODO: Add your control notification handler code here
-	if(protein1->m_read=true ){
+	if(protein1->m_rof !=NULL ){
 		protein1->speed=m_SpeedSlider.GetPos();
 	}
-	if(protein2->m_read=true){
+	if(protein1->m_rof!=NULL){
 		protein2->speed=m_SpeedSlider.GetPos();
 	}
 	*pResult = 0;
