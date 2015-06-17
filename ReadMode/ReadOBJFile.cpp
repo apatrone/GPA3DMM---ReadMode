@@ -4,10 +4,10 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <cmath> //for sqrt
-#include <algorithm> 
+//#include <algorithm> 
 #define _USE_MATH_DEFINES
 #include <math.h> //for M_PI
-
+#include <list>
 
 ReadOBJFile::ReadOBJFile(bool useNE)
 {
@@ -667,9 +667,9 @@ void ReadOBJFile::Draw()
 		::glBegin(GL_TRIANGLES);
 		for(int i=0; i<vertexIndices.size(); i++)
 		{	
-			if(m_vcalc[vertexIndices[i]].kG>gauss_sup)  
+			if(m_vcalc[vertexIndices[i]].kM>gauss_sup)  
 			{::glColor3f(0.5f,1.0f,0.0f); m++;} //green
-			else if(m_vcalc[vertexIndices[i]].kG<gauss_inf) 
+			else if(m_vcalc[vertexIndices[i]].kM<gauss_inf) 
 			{::glColor3f(0.5f,0.0f,0.5f); n++;}  //mauve
 			else{
 				::glColor3f(0.0f,1.0f,1.0f); //turquoise
@@ -703,7 +703,7 @@ int ReadOBJFile::EstimateNormals(void)
 {
 
 	
-normal_buffer = new std::vector<glm::vec3>[vertexIndices.size()];
+normal_buffer = new std::vector<glm::vec3>[vertexIndices.size()]();
 
 for( int i = 0; i < vertexIndices.size(); i += 3 )
 {
@@ -729,8 +729,8 @@ for( int i = 0; i < vertexIndices.size(); i += 3 )
  }
 
  m_vcalc=(GLVertex *)malloc(sizeof(GLVertex)*vertexIndices.size());
- // Now loop through each vertex vector, and avarage out all the normals stored.
- for( int i = 0; i < size_m_v/*vertexIndices.size()*/ ; ++i )   //900 tjr pas de réécriture  ... mais réécriture sur m_vn avant 925, mais pas sur uvindices
+ // Now loop through each vertex vector, and average out all the normals stored.
+ for( int i = 0; i < size_m_v; ++i )   //900 tjr pas de réécriture  ... mais réécriture sur m_vn avant 925, mais pas sur uvindices
  {
 	m_vcalc[i].x=m_v[i].x; m_vcalc[i].y=m_v[i].y; m_vcalc[i].z=m_v[i].z;
 	m_vcalc[i].normal=glm::vec3(0,0,0);
@@ -789,12 +789,21 @@ for( int i = 0; i < vertexIndices.size(); i += 3 )
 }
 
 void ReadOBJFile::EstimatekGkM(void)
-{
+{ 
+	struct {
+        bool operator()(OrderedEdges a,  OrderedEdges b)
+        {   
+            return a.angle < b.angle;
+        }   
+    } custom_order;
+
+    //std::sort(s.begin(), s.end(), customLess);
 	for(int i=0; i<size_m_v; i++)
 	{
 		float sum_angles=0; //for kG
 		float sum_area=0;//for kG and kM
 		float sum_dihedral_angles=0; //for kM
+		std::list<OrderedEdges> ordered_edges ;
 		for(int j=0; j<vertexIndices.size(); j+=3)
 		{	
 			//if current vertex belongs to the current triangle/face
@@ -805,7 +814,6 @@ void ReadOBJFile::EstimatekGkM(void)
 				glm::vec3 p2; 
 				glm::vec3 p3;
 				float angle;
-				float dihedral_angle;
 				float area;
 				glm::vec3 normal;
 				glm::vec3 previous_normal;
@@ -834,23 +842,41 @@ void ReadOBJFile::EstimatekGkM(void)
 				//area for kG and kM
 				area=GetArea(v1, v2);
 				sum_area+=area;
-				normal = cross(v1, v2);
+				//normal = cross(v1, v2);
 				//dihedral angle = angle between triangle normals --> for kM
-				if(j>1 )   //this part of the algorithm is probably false because the edges are not ordered! so we are calculation maybe angle(ei, ei+6)
-				{				//They should be ordered according to the angle they make with e0
+				 //this part of the algorithm is probably false because the edges are not ordered! so we are calculation maybe angle(ei, ei+6)
+				//They should be ordered according to the angle they make with e0
+				/*if(j>1 )  
+				{				
 					dihedral_angle=GetAngle(previous_normal, normal);
 					previous_normal=normal;
 					sum_dihedral_angles+=dihedral_angle;
 				}
 				else{
 					previous_normal = cross(v1, v2);
-				}
-
+				}*/
+				OrderedEdges e;
+				e.v1=v1;
+				e.v2=v2;
+				e.angle=GetAngle(v1,v2);
+				ordered_edges.push_back(e); 
 			}
 
 		}
-
-		m_vcalc[i].kG= (2* M_PI - sum_angles)/sum_area; 
+		//calc kG
+		m_vcalc[i].kG= (2* M_PI - sum_angles)/sum_area;  
+		//calc kM 
+		ordered_edges.sort( custom_order);
+		OrderedEdges previous_edge=  ordered_edges.front();
+		ordered_edges.pop_front();
+		OrderedEdges edge;
+		for(int k=1; k<ordered_edges.size(); k++){
+			edge=ordered_edges.front();
+			ordered_edges.pop_front();
+			//normal = cross(v1, v2);
+			sum_dihedral_angles+=GetAngle(cross(previous_edge.v1, previous_edge.v2),cross(edge.v1, edge.v2));
+			previous_edge=edge;
+		}
 		m_vcalc[i].kM= sum_dihedral_angles/(4 * sum_area);
 	}
 

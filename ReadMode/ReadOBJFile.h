@@ -53,6 +53,12 @@ typedef  struct Mtl//保存材质信息
 	GLfloat ke[3];      //散射分量
 	GLfloat ns;         //材质的光亮度
 }GLMtl;
+
+typedef  struct Edges{
+	glm::vec3 v1;
+	glm::vec3 v2;
+	float angle;
+}OrderedEdges;
 class ReadOBJFile
 {
 public:
