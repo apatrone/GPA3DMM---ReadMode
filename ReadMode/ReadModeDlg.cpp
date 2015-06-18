@@ -74,6 +74,8 @@ void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK2, m_checkbox2);
 	DDX_Control(pDX, IDC_GAUSS_INF, gauss_inf);
 	DDX_Control(pDX, IDC_GAUSS_SUP, gauss_sup);
+	DDX_Control(pDX, IDC_USE_MEAN, m_use_mean1);
+	DDX_Control(pDX, IDC_USE_MEAN2, m_use_mean2);
 }
 BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
@@ -109,6 +111,12 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_EN_KILLFOCUS(IDC_GAUSS_INF, &CReadModeDlg::OnKillfocusGaussInf)
 	ON_EN_KILLFOCUS(IDC_GAUSS_SUP, &CReadModeDlg::OnKillfocusGaussSup)
 	ON_EN_CHANGE(IDC_GAUSS_INF, &CReadModeDlg::OnChangeGaussInf)
+	ON_BN_CLICKED(IDC_USE_MEAN, &CReadModeDlg::OnClickedUseMean)
+	ON_BN_CLICKED(IDC_USE_MEAN2, &CReadModeDlg::OnClickedUseMean2)
+	ON_COMMAND(IDC_USE_GAUSS, &CReadModeDlg::OnUseGauss)
+	ON_COMMAND(IDC_USE_GAUSS2, &CReadModeDlg::OnUseGauss2)
+	ON_BN_CLICKED(IDC_USE_NONE, &CReadModeDlg::OnClickedUseNone)
+	ON_BN_CLICKED(IDC_USE_NONE2, &CReadModeDlg::OnClickedUseNone2)
 END_MESSAGE_MAP()
 
 
@@ -158,6 +166,8 @@ BOOL CReadModeDlg::OnInitDialog()
 	gauss_superior=60;
 	m_gauss_inf_handle->SetWindowTextW(_T("10"));
 	m_gauss_sup_handle->SetWindowTextW(_T("60"));
+	curv1=MEAN;
+	curv2=MEAN;
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 void CReadModeDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -265,9 +275,10 @@ void CReadModeDlg::OnBnClickedReadm()
 		m_infobox_handle->SetWindowTextW(_T("No normal information in this file"));
 	}
 	else m_infobox_handle->SetWindowTextW(_T(""));
-	if(protein2->m_rof != NULL){
-		protein2->m_rof->gauss_inf = gauss_inferior;
-		protein2->m_rof->gauss_sup = gauss_superior;
+	if(protein1->m_rof != NULL){
+		protein1->m_rof->gauss_inf = gauss_inferior;
+		protein1->m_rof->gauss_sup = gauss_superior;
+		protein1->m_rof->use_curvature = curv1;
 	}
 	//SetTimer(1,100,NULL);
 	::SetFocus(::GetActiveWindow());
@@ -300,6 +311,7 @@ void CReadModeDlg::OnBnClickedReadm2()
 	if(protein2->m_rof != NULL){
 		protein2->m_rof->gauss_inf = gauss_inferior;
 		protein2->m_rof->gauss_sup = gauss_superior;
+		protein2->m_rof->use_curvature = curv2;
 	}
 	
 	//SetTimer(1,100,NULL);
@@ -700,4 +712,65 @@ void CReadModeDlg::OnChangeGaussInf()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
+}
+
+
+void CReadModeDlg::OnClickedUseMean()
+{
+	if(protein1->m_rof!=NULL){
+		protein1->m_rof->use_curvature=MEAN;
+	}
+	// TODO: Add your control notification handler code here
+	curv1=MEAN;
+}
+
+
+void CReadModeDlg::OnClickedUseMean2()
+{
+	// TODO: Add your control notification handler code here
+	if(protein2->m_rof!=NULL){
+		protein2->m_rof->use_curvature=MEAN;
+	}
+	curv2=MEAN;
+}
+
+
+void CReadModeDlg::OnUseGauss()
+{
+	if(protein1->m_rof!=NULL){
+		protein1->m_rof->use_curvature=GAUSS;
+	}
+	// TODO: Add your command handler code here
+	curv1=GAUSS;
+}
+
+
+void CReadModeDlg::OnUseGauss2()
+{
+	// TODO: Add your command handler code here
+	if(protein2->m_rof!=NULL){
+		protein2->m_rof->use_curvature=GAUSS;
+	}
+	curv2=GAUSS;
+}
+
+
+void CReadModeDlg::OnClickedUseNone()
+{
+	// TODO: Add your control notification handler code here
+	if(protein1->m_rof!=NULL){
+		protein1->m_rof->use_curvature=NONE;
+	}
+	// TODO: Add your command handler code here
+	curv1=NONE;
+}
+
+
+void CReadModeDlg::OnClickedUseNone2()
+{
+	// TODO: Add your control notification handler code here
+	if(protein2->m_rof!=NULL){
+		protein2->m_rof->use_curvature=NONE;
+	}
+	curv2=NONE;
 }

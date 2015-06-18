@@ -7,6 +7,7 @@
 #include <cmath>
 //#include "vector3.h"
 
+typedef enum Curvature{MEAN, GAUSS, NONE};
 
 typedef struct  Vertex        //保存点信息
 {
@@ -55,9 +56,8 @@ typedef  struct Mtl//保存材质信息
 }GLMtl;
 
 typedef  struct Edges{
-	glm::vec3 v1;
-	glm::vec3 v2;
-	float angle;
+	glm::vec3 e1;
+	glm::vec3 e2;
 }OrderedEdges;
 class ReadOBJFile
 {
@@ -68,6 +68,7 @@ public:
 	void Draw();
 	bool ReadFile(char * FileNmae);
 	bool ReadLine(FILE *fp,char *str);
+	std::vector<glm::vec3> OrderEdges(std::vector<glm::vec3> edges);
 	void GetInfo();
 	void GetMtlInfo();
 	void EstimatekGkM(void);
@@ -96,5 +97,6 @@ public:
 	std::vector<glm::vec3>* normal_buffer;
 	int gauss_sup;
 	int gauss_inf;
+	Curvature use_curvature;
 };
 

@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <cmath> //for sqrt
-//#include <algorithm> 
+#include <algorithm> 
 #define _USE_MATH_DEFINES
 #include <math.h> //for M_PI
 #include <list>
@@ -24,6 +24,7 @@ ReadOBJFile::ReadOBJFile(bool useNE)
 	vn=false;  vt=false;
 	gauss_inf=10;
 	gauss_sup=60;
+	use_curvature=MEAN;
 }
 
 
@@ -663,20 +664,31 @@ void ReadOBJFile::Draw()
 	}
 	else 
 	{
+
+
 		int m=0, n=0, o=0;
+		float comp;
+		
 		::glBegin(GL_TRIANGLES);
 		for(int i=0; i<vertexIndices.size(); i++)
 		{	
-			if(m_vcalc[vertexIndices[i]].kM>gauss_sup)  
+			if(use_curvature!=NONE){
+				if(use_curvature==GAUSS)
+					comp=m_vcalc[vertexIndices[i]].kG;
+				else if(use_curvature==MEAN)
+					comp=m_vcalc[vertexIndices[i]].kM;
+			}
+
+			if(comp>gauss_sup)  
 			{::glColor3f(0.5f,1.0f,0.0f); m++;} //green
-			else if(m_vcalc[vertexIndices[i]].kM<gauss_inf) 
+			else if(comp<gauss_inf) 
 			{::glColor3f(0.5f,0.0f,0.5f); n++;}  //mauve
 			else{
 				::glColor3f(0.0f,1.0f,1.0f); //turquoise
 				o++;
 			}
-
-
+			
+			float f = m_vcalc[vertexIndices[i]].kM;
 			if(res>=2 && useNormalEstimation==false)  //if not using estimated normals
 				::glNormal3f(this->m_vn[normalIndices[i]].x,this->m_vn[normalIndices[i]].y,this->m_vn[normalIndices[i]].z);
 			else
@@ -790,26 +802,24 @@ for( int i = 0; i < vertexIndices.size(); i += 3 )
 
 void ReadOBJFile::EstimatekGkM(void)
 { 
-	struct {
-        bool operator()(OrderedEdges a,  OrderedEdges b)
-        {   
-            return a.angle < b.angle;
-        }   
-    } custom_order;
-
+	
     //std::sort(s.begin(), s.end(), customLess);
 	for(int i=0; i<size_m_v; i++)
 	{
+		int p=0; //for test
+		int r=0;//For test
 		float sum_angles=0; //for kG
 		float sum_area=0;//for kG and kM
 		float sum_dihedral_angles=0; //for kM
-		std::list<OrderedEdges> ordered_edges ;
+		//std::list<OrderedEdges> ordered_edges ;
+		std::vector<glm::vec3> ordered_edges;
 		for(int j=0; j<vertexIndices.size(); j+=3)
 		{	
 			//if current vertex belongs to the current triangle/face
 			//if(vertexIndices[j]==i || etc. is the same?
 			if(VertexEqual(m_vcalc[vertexIndices[j]],m_vcalc[i]) ||  VertexEqual(m_vcalc[vertexIndices[j+1]],m_vcalc[i]) || VertexEqual(m_vcalc[vertexIndices[j+2]],m_vcalc[i]))
 			{
+				r++;
 				glm::vec3 p1 = glm::vec3(m_vcalc[i].x, m_vcalc[i].y, m_vcalc[i].z);
 				glm::vec3 p2; 
 				glm::vec3 p3;
@@ -842,42 +852,61 @@ void ReadOBJFile::EstimatekGkM(void)
 				//area for kG and kM
 				area=GetArea(v1, v2);
 				sum_area+=area;
-				//normal = cross(v1, v2);
-				//dihedral angle = angle between triangle normals --> for kM
-				 //this part of the algorithm is probably false because the edges are not ordered! so we are calculation maybe angle(ei, ei+6)
-				//They should be ordered according to the angle they make with e0
-				/*if(j>1 )  
-				{				
-					dihedral_angle=GetAngle(previous_normal, normal);
-					previous_normal=normal;
-					sum_dihedral_angles+=dihedral_angle;
+				//order edges for kM
+				ordered_edges.push_back(v1);
+				ordered_edges.push_back(v2);
+				/*std::vector<glm::vec3>::iterator m_v1= std::find(ordered_edges.begin(), ordered_edges.end(),v1);
+				std::vector<glm::vec3>::iterator m_v2= std::find(ordered_edges.begin(), ordered_edges.end(),v2);
+				if(m_v1==ordered_edges.end() && m_v2==ordered_edges.end() ) //v1 and v2 not in list put both at the end of the list
+				{p++;
+					ordered_edges.push_back(v1);
+					ordered_edges.push_back(v2);
 				}
-				else{
-					previous_normal = cross(v1, v2);
+				else if(m_v1!=ordered_edges.end()&& m_v2==ordered_edges.end()) //if v1 is in the list, add v2 after v1
+				{p++;
+					ordered_edges.insert(m_v1+1, v2);
+				}
+				else if(m_v1==ordered_edges.end()&& m_v2!=ordered_edges.end()) //if v2 is in the list, add v1 after v2
+				{p++;
+					ordered_edges.insert(m_v2+1, v1);
 				}*/
-				OrderedEdges e;
-				e.v1=v1;
-				e.v2=v2;
-				e.angle=GetAngle(v1,v2);
-				ordered_edges.push_back(e); 
 			}
 
 		}
-		//calc kG
-		m_vcalc[i].kG= (2* M_PI - sum_angles)/sum_area;  
-		//calc kM 
-		ordered_edges.sort( custom_order);
+
+		//calc kM  - sort the edges according to angle...this is false, as they don't all refer to the same edge!!! :( 2 opposite angles can be small
+	/*	ordered_edges.sort( custom_order);
 		OrderedEdges previous_edge=  ordered_edges.front();
 		ordered_edges.pop_front();
-		OrderedEdges edge;
-		for(int k=1; k<ordered_edges.size(); k++){
-			edge=ordered_edges.front();
-			ordered_edges.pop_front();
-			//normal = cross(v1, v2);
-			sum_dihedral_angles+=GetAngle(cross(previous_edge.v1, previous_edge.v2),cross(edge.v1, edge.v2));
-			previous_edge=edge;
+		OrderedEdges edge;*/
+		glm::vec3 previous_edge;
+		glm::vec3 edge;
+		glm::vec3 next_edge;
+		glm::vec3 cross_edge;
+		glm::vec3 cross_next_edge;
+		ordered_edges=OrderEdges(ordered_edges);
+		std::vector<glm::vec3>::iterator del;
+		for(int k=1; k<ordered_edges.size()-1; k++){ 
+			//for km
+			previous_edge=ordered_edges[k-1];
+			edge=ordered_edges[k];
+			del=std::find(ordered_edges.begin(), ordered_edges.end(),ordered_edges[k+1]);
+			next_edge=ordered_edges[k+1];
+			cross_edge=glm::cross(previous_edge, edge);
+			cross_next_edge=glm::cross(edge, next_edge);
+			sum_dihedral_angles+=GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(edge);
 		}
-		m_vcalc[i].kM= sum_dihedral_angles/(4 * sum_area);
+		cross_edge=glm::cross(edge, next_edge);
+		cross_next_edge=glm::cross(next_edge, ordered_edges[0]);
+		sum_dihedral_angles+=GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(next_edge);
+		cross_edge=glm::cross(next_edge,  ordered_edges[0]);
+		cross_next_edge=glm::cross(ordered_edges[0], ordered_edges[1]);
+		sum_dihedral_angles+=GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge))* glm::length( ordered_edges[0]);
+		
+		//calc kG
+		m_vcalc[i].kG= (2* M_PI - sum_angles)/sum_area *100;  
+		//calc kM
+		m_vcalc[i].kM= sum_dihedral_angles/(4 * sum_area) * 100;
 	}
 
 }
@@ -891,20 +920,25 @@ bool ReadOBJFile::VertexEqual(GLVertex v1, GLVertex v2)
 float ReadOBJFile::GetAngle(glm::vec3 v1, glm::vec3 v2){
 	//glm::vec3 v1= glm::vec3(4,4,2); //for test 
 	//glm::vec3 v2= glm::vec3(2,3,5); //for test
-	float prod_sum = v1.x * v2.x + v1.y * v2.y +  v1.z * v2.z;
-	float abs_v1= sqrt( v1.x * v1.x + v1.y * v1.y +  v1.z * v1.z);   //glm::abs?? abs returns a vector...
-	float abs_v2=sqrt( v2.x * v2.x + v2.y * v2.y +  v2.z * v2.z);
+	float prod_sum = v1.x * v2.x + v1.y * v2.y +  v1.z * v2.z;   //dot product...
+	float abs_v1= sqrt( v1.x * v1.x + v1.y * v1.y +  v1.z * v1.z);  //glm::length
+	float abs_v2=sqrt( v2.x * v2.x + v2.y * v2.y +  v2.z * v2.z); //glm::length
 
 	float cos=(abs_v1*abs_v2)>0? ::cos( prod_sum / (abs_v1*abs_v2)): 0; //if division by zero cos= 0
-	return ::acos(cos);
+	 float c=::acos(cos);
+	if(c>=0 && c <= ( M_PI))
+		return c;
+	else
+		return GetAngle(v2, v1);
+	
 
 }
 
-float ReadOBJFile::GetArea(glm::vec3 v1, glm::vec3 v2)  //Equiv to glm::dot? not the same result 
+float ReadOBJFile::GetArea(glm::vec3 v1, glm::vec3 v2) 
 {
 	//glm::vec3 v1= glm::vec3(-3,1,-7); //for test 
 	//glm::vec3 v2= glm::vec3(0,-5,-5); //for test
-	glm::vec3 v = GetCrossProduct(v1,v2);
+	glm::vec3 v = glm::cross(v1,v2);
 	float area= 0.5* sqrt( v.x * v.x + v.y * v.y + v.z * v.z );  //half the absolute value of the cross product
 	//float k= glm::dot(v1,v2) ; for test...
 	return area;
@@ -919,4 +953,54 @@ glm::vec3 ReadOBJFile::GetCrossProduct(glm::vec3 v1,glm::vec3 v2) //glm::cross..
 						(v1.x* v2.y) - (v1.y * v2.x));
 	return v;
 
+}
+std::vector<glm::vec3> ReadOBJFile::OrderEdges(std::vector<glm::vec3> edges){
+	/*std::vector<glm::vec3> edges;  //For test
+	glm::vec3 v1=glm::vec3(1);
+	glm::vec3 v2=glm::vec3(2);
+	glm::vec3 v3=glm::vec3(3);
+	glm::vec3 v4=glm::vec3(4);*/
+
+	//edges.push_back(v1);edges.push_back(v2);edges.push_back(v3);edges.push_back(v4);edges.push_back(v2);edges.push_back(v4);	edges.push_back(v1);edges.push_back(v3);
+	for(int i=0; i<edges.size()-2; i+=2){
+		if( edges[i+1] != edges[i] ){
+			if(edges[i+1]== edges[i+3]){ //if next couple of vectors has it's second element equal to the second vector of this couple
+				glm::vec3 tmp=edges[i+2]; //swap the vectors of the next couple
+				edges[i+2]=edges[i+3];
+				edges[i+3]=tmp;
+			}
+			else{    //find a couple of vectors which contain v1
+				for(int j=i+4; j<edges.size(); j+=2){ //find another couple which contains the second vector
+					if( edges[i+1] == edges[j] ){  //if the couple of vectors has it's first element equal to the second vector of this couple swap
+						glm::vec3 tmp=edges[i+2];
+						edges[i+2]=edges[j];
+						edges[j]=tmp;
+						tmp=edges[i+3];
+						edges[i+3]=edges[j+1];
+						edges[j+1]=tmp;
+						break;
+					}
+					else if( edges[i+1] == edges[j+1] ){//if the couple of vectors has it's second element equal to the second vector of this couple swap 
+						glm::vec3 tmp=edges[i+2];
+						edges[i+2]=edges[j+1];
+						edges[j+1]=tmp;
+						tmp=edges[i+3];
+						edges[i+3]=edges[j];
+						edges[j]=tmp;
+						break;
+					}
+
+				
+				}
+
+			}
+
+
+		}
+
+	}
+	//if(edges[edges.size()-1] == edges[0])
+		return edges;
+	
+	
 }
