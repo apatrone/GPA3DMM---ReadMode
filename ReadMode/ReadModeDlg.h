@@ -93,6 +93,7 @@ public:
 	int gauss_superior;
 	Curvature curv1;
 	Curvature curv2;
+	CTrackBall *trackball;
 //	afx_msg void OnEnChangeGaussInf();
 //	afx_msg void OnEnChangeGaussSup();
 	afx_msg void OnKillfocusGaussInf();
@@ -106,4 +107,6 @@ public:
 	CButton m_use_mean2;
 	afx_msg void OnClickedUseNone();
 	afx_msg void OnClickedUseNone2();
+	afx_msg void OnBnClickedUseSi();
+	afx_msg void OnBnClickedUseSi2();
 };

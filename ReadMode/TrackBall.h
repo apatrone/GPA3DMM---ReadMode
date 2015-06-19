@@ -1,17 +1,18 @@
 #include "gl/glut.h"
 #include <math.h>
+
 //#define _USE_MATH_DEFINES
 #if !defined (TRACKBALL_H)
 #define  TRACKBALL_H
 //#define M_PI       3.14159265358979323846
 
-
+#include "ProteinFrame.h"
 
 
 class CTrackBall
 {
-public:  
-	CTrackBall() {};
+public: 
+	CTrackBall(int w, int h) {winWidth=w;winHeight=h;  init();}
 	~CTrackBall() {};
 
 	void SetWinWidth(int w) { winWidth=w; }
@@ -26,8 +27,6 @@ public:
 			axis[i]=0.0f;
 			lastPos[i]=0.0f;
 		} 
-		winWidth=0;
-		winHeight=0;
 		angle=0.0f;
 		//for the use of mouse
 		curX=0;
@@ -88,6 +87,7 @@ public:
 		v[0] *=a;
 		v[1] *=a;
 		v[2] *=a;
+		
 
 	}
 
@@ -159,6 +159,7 @@ private:
 	//for the use of mouse
 	int curX, curY;
 	int startX, startY;
+
 };
 
 

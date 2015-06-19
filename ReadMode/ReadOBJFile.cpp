@@ -463,7 +463,6 @@ bool ReadOBJFile::ReadFile(char *FileName)
 	strcpy(this->m_FileName,FileName);
 	fclose(fp);
 	this->GetInfo();
-
 	this->GetMtlInfo();
 }
 bool ReadOBJFile::ReadLine(FILE *fp,char *str)
@@ -672,23 +671,35 @@ void ReadOBJFile::Draw()
 		::glBegin(GL_TRIANGLES);
 		for(int i=0; i<vertexIndices.size(); i++)
 		{	
-			if(use_curvature!=NONE){
+			if(use_curvature==SHAPEINDEX){
+				comp=m_vcalc[vertexIndices[i]].shape_index *100;
+				if(comp> 50)
+					::glColor3f(0.5f,1.0f,0.0f);
+				else if(comp < -50)
+					::glColor3f(0.5f,0.0f,0.5f);
+				else
+					::glColor3f(0.0f,1.0f,1.0f);
+			}
+			else if(use_curvature!=NONE){
 				if(use_curvature==GAUSS)
-					comp=m_vcalc[vertexIndices[i]].kG;
+					comp=m_vcalc[vertexIndices[i]].kG *100 ;
 				else if(use_curvature==MEAN)
-					comp=m_vcalc[vertexIndices[i]].kM;
-			}
+					comp=m_vcalc[vertexIndices[i]].kM *100;
 
-			if(comp>gauss_sup)  
-			{::glColor3f(0.5f,1.0f,0.0f); m++;} //green
-			else if(comp<gauss_inf) 
-			{::glColor3f(0.5f,0.0f,0.5f); n++;}  //mauve
-			else{
-				::glColor3f(0.0f,1.0f,1.0f); //turquoise
-				o++;
+				
+				if(comp>gauss_sup)  
+				{::glColor3f(0.5f,1.0f,0.0f); m++;} //green
+				else if(comp<gauss_inf) 
+				{::glColor3f(0.5f,0.0f,0.5f); n++;}  //mauve
+				else{
+					::glColor3f(0.0f,1.0f,1.0f); //turquoise
+					o++;
+				}
+
 			}
-			
-			float f = m_vcalc[vertexIndices[i]].kM;
+			else 
+				::glColor3f(0.0f,1.0f,1.0f);
+
 			if(res>=2 && useNormalEstimation==false)  //if not using estimated normals
 				::glNormal3f(this->m_vn[normalIndices[i]].x,this->m_vn[normalIndices[i]].y,this->m_vn[normalIndices[i]].z);
 			else
@@ -874,27 +885,22 @@ void ReadOBJFile::EstimatekGkM(void)
 
 		}
 
-		//calc kM  - sort the edges according to angle...this is false, as they don't all refer to the same edge!!! :( 2 opposite angles can be small
-	/*	ordered_edges.sort( custom_order);
-		OrderedEdges previous_edge=  ordered_edges.front();
-		ordered_edges.pop_front();
-		OrderedEdges edge;*/
+		//calc kM
 		glm::vec3 previous_edge;
 		glm::vec3 edge;
 		glm::vec3 next_edge;
 		glm::vec3 cross_edge;
 		glm::vec3 cross_next_edge;
 		ordered_edges=OrderEdges(ordered_edges);
-		std::vector<glm::vec3>::iterator del;
+
 		for(int k=1; k<ordered_edges.size()-1; k++){ 
-			//for km
 			previous_edge=ordered_edges[k-1];
 			edge=ordered_edges[k];
-			del=std::find(ordered_edges.begin(), ordered_edges.end(),ordered_edges[k+1]);
 			next_edge=ordered_edges[k+1];
 			cross_edge=glm::cross(previous_edge, edge);
 			cross_next_edge=glm::cross(edge, next_edge);
 			sum_dihedral_angles+=GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(edge);
+		
 		}
 		cross_edge=glm::cross(edge, next_edge);
 		cross_next_edge=glm::cross(next_edge, ordered_edges[0]);
@@ -902,11 +908,13 @@ void ReadOBJFile::EstimatekGkM(void)
 		cross_edge=glm::cross(next_edge,  ordered_edges[0]);
 		cross_next_edge=glm::cross(ordered_edges[0], ordered_edges[1]);
 		sum_dihedral_angles+=GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge))* glm::length( ordered_edges[0]);
+
 		
 		//calc kG
-		m_vcalc[i].kG= (2* M_PI - sum_angles)/sum_area *100;  
+		m_vcalc[i].kG= (2* M_PI - sum_angles)/sum_area ;  
 		//calc kM
-		m_vcalc[i].kM= sum_dihedral_angles/(4 * sum_area) * 100;
+		m_vcalc[i].kM= sum_dihedral_angles/(4 * sum_area) ;
+		m_vcalc[i].shape_index = GetShapeIndex(m_vcalc[i].kG,m_vcalc[i].kM);
 	}
 
 }
@@ -955,13 +963,14 @@ glm::vec3 ReadOBJFile::GetCrossProduct(glm::vec3 v1,glm::vec3 v2) //glm::cross..
 
 }
 std::vector<glm::vec3> ReadOBJFile::OrderEdges(std::vector<glm::vec3> edges){
-	/*std::vector<glm::vec3> edges;  //For test
-	glm::vec3 v1=glm::vec3(1);
-	glm::vec3 v2=glm::vec3(2);
-	glm::vec3 v3=glm::vec3(3);
-	glm::vec3 v4=glm::vec3(4);*/
-
+	//std::vector<glm::vec3> edges;  //For test
+	//glm::vec3 v1=glm::vec3(1);
+	//glm::vec3 v2=glm::vec3(2);
+	//glm::vec3 v3=glm::vec3(3);
+	//glm::vec3 v4=glm::vec3(4);
 	//edges.push_back(v1);edges.push_back(v2);edges.push_back(v3);edges.push_back(v4);edges.push_back(v2);edges.push_back(v4);	edges.push_back(v1);edges.push_back(v3);
+	
+	
 	for(int i=0; i<edges.size()-2; i+=2){
 		if( edges[i+1] != edges[i] ){
 			if(edges[i+1]== edges[i+3]){ //if next couple of vectors has it's second element equal to the second vector of this couple
@@ -989,18 +998,30 @@ std::vector<glm::vec3> ReadOBJFile::OrderEdges(std::vector<glm::vec3> edges){
 						edges[j]=tmp;
 						break;
 					}
-
-				
+	
 				}
 
 			}
 
-
 		}
 
 	}
-	//if(edges[edges.size()-1] == edges[0])
-		return edges;
+	 //delete duplicates (ex: V1 V2 V2 V4 V4 V3 V3 V1 --> V1 V2 V4 V3)
+	for(int i=2; i<edges.size(); i++){ 
+		edges.erase(edges.begin() + i);
+	}
+	//edges.erase(edges.end()-1);
+	if(edges[edges.size()-1] == edges[0])
+		edges.erase(edges.end()-1);
+	return edges;
 	
-	
+}
+
+
+float ReadOBJFile::GetShapeIndex(float kG, float kM){
+		float k1 = kM + sqrt( kM*kM - kG); 
+		float k2 = kM - sqrt( kM*kM - kG);
+		float shape_index= -2 / M_PI * ::atan( (k1+k2) / (k1 - k2));
+		return shape_index;
+
 }

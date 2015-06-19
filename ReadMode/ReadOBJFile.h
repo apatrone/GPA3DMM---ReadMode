@@ -7,7 +7,7 @@
 #include <cmath>
 //#include "vector3.h"
 
-typedef enum Curvature{MEAN, GAUSS, NONE};
+typedef enum Curvature{MEAN, GAUSS, SHAPEINDEX, NONE};
 
 typedef struct  Vertex        //保存点信息
 {
@@ -18,6 +18,7 @@ typedef struct  Vertex        //保存点信息
 	glm::vec3 normal; //vertex normal
 	float kG;  //discrete gaussian curvature
 	float kM;  //discrete mean curvature
+	float shape_index;
 	
 	//std::vector<Vector3> normal;
 } GLVertex ;
@@ -69,6 +70,7 @@ public:
 	bool ReadFile(char * FileNmae);
 	bool ReadLine(FILE *fp,char *str);
 	std::vector<glm::vec3> OrderEdges(std::vector<glm::vec3> edges);
+	float GetShapeIndex(float kG, float kM);
 	void GetInfo();
 	void GetMtlInfo();
 	void EstimatekGkM(void);
