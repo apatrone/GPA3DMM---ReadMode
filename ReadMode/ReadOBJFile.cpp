@@ -11,8 +11,6 @@
 
 ReadOBJFile::ReadOBJFile(bool useNE)
 {
-	GetAngle(glm::vec3(0,0,0), glm::vec3(0,0,0));
-	GetArea(glm::vec3(0,0,0), glm::vec3(0,0,0));
 	memset(this->m_FileName,0,256);
 	m_nCount=0;
 	lastj=0;
@@ -682,10 +680,10 @@ void ReadOBJFile::Draw()
 			}
 			else if(use_curvature!=NONE){
 				if(use_curvature==GAUSS)
-					comp=m_vcalc[vertexIndices[i]].kG *100 ;
+					comp=m_vcalc[vertexIndices[i]].kG * 100 ;
 				else if(use_curvature==MEAN)
 					comp=m_vcalc[vertexIndices[i]].kM *100;
-
+				
 				
 				if(comp>gauss_sup)  
 				{::glColor3f(0.5f,1.0f,0.0f); m++;} //green
@@ -836,8 +834,7 @@ void ReadOBJFile::EstimatekGkM(void)
 				glm::vec3 p3;
 				float angle;
 				float area;
-				glm::vec3 normal;
-				glm::vec3 previous_normal;
+
 				if( VertexEqual(m_vcalc[vertexIndices[j]],m_vcalc[i]))
 				{
 					p2 = glm::vec3(m_vcalc[vertexIndices[j+1]].x, m_vcalc[vertexIndices[j+1]].y, m_vcalc[vertexIndices[j+1]].z);
@@ -857,30 +854,15 @@ void ReadOBJFile::EstimatekGkM(void)
 				
 				glm::vec3 v1 = p2 - p1;
 				glm::vec3 v2 = p3 - p1; 
-				//angle for kG
+	/*			//angle for kG
 				angle=GetAngle(v1,v2);
 				sum_angles+=angle;
 				//area for kG and kM
 				area=GetArea(v1, v2);
-				sum_area+=area;
-				//order edges for kM
+				sum_area+=area;*/
+				//store both edges for kM
 				ordered_edges.push_back(v1);
 				ordered_edges.push_back(v2);
-				/*std::vector<glm::vec3>::iterator m_v1= std::find(ordered_edges.begin(), ordered_edges.end(),v1);
-				std::vector<glm::vec3>::iterator m_v2= std::find(ordered_edges.begin(), ordered_edges.end(),v2);
-				if(m_v1==ordered_edges.end() && m_v2==ordered_edges.end() ) //v1 and v2 not in list put both at the end of the list
-				{p++;
-					ordered_edges.push_back(v1);
-					ordered_edges.push_back(v2);
-				}
-				else if(m_v1!=ordered_edges.end()&& m_v2==ordered_edges.end()) //if v1 is in the list, add v2 after v1
-				{p++;
-					ordered_edges.insert(m_v1+1, v2);
-				}
-				else if(m_v1==ordered_edges.end()&& m_v2!=ordered_edges.end()) //if v2 is in the list, add v1 after v2
-				{p++;
-					ordered_edges.insert(m_v2+1, v1);
-				}*/
 			}
 
 		}
@@ -894,14 +876,25 @@ void ReadOBJFile::EstimatekGkM(void)
 		ordered_edges=OrderEdges(ordered_edges);
 
 		for(int k=1; k<ordered_edges.size()-1; k++){ 
+
 			previous_edge=ordered_edges[k-1];
 			edge=ordered_edges[k];
 			next_edge=ordered_edges[k+1];
+			//angle for kG
+			sum_angles+=GetAngle(previous_edge,edge);
+			//area for kG and kM
+			sum_area+=GetArea(previous_edge,edge);
+			//get normals and calculate dihedral angle (angle between normals) * length of edge
 			cross_edge=glm::cross(previous_edge, edge);
 			cross_next_edge=glm::cross(edge, next_edge);
 			sum_dihedral_angles+=GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(edge);
 		
 		}
+		//angle for kG
+		sum_angles+=GetAngle(edge,next_edge) + GetAngle(next_edge,ordered_edges[0]) ;
+		//area for kG and kM
+		sum_area+=GetArea(edge,next_edge)+ GetArea(next_edge,ordered_edges[0]);
+
 		cross_edge=glm::cross(edge, next_edge);
 		cross_next_edge=glm::cross(next_edge, ordered_edges[0]);
 		sum_dihedral_angles+=GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(next_edge);
@@ -911,9 +904,9 @@ void ReadOBJFile::EstimatekGkM(void)
 
 		
 		//calc kG
-		m_vcalc[i].kG= (2* M_PI - sum_angles)/sum_area ;  
+		m_vcalc[i].kG= (2* M_PI - sum_angles)/(sum_area) ;  
 		//calc kM
-		m_vcalc[i].kM= sum_dihedral_angles/(4 * sum_area) ;
+		m_vcalc[i].kM=   sum_dihedral_angles/(4 * sum_area ) ;
 		m_vcalc[i].shape_index = GetShapeIndex(m_vcalc[i].kG,m_vcalc[i].kM);
 	}
 
@@ -929,16 +922,16 @@ float ReadOBJFile::GetAngle(glm::vec3 v1, glm::vec3 v2){
 	//glm::vec3 v1= glm::vec3(4,4,2); //for test 
 	//glm::vec3 v2= glm::vec3(2,3,5); //for test
 	float prod_sum = v1.x * v2.x + v1.y * v2.y +  v1.z * v2.z;   //dot product...
-	float abs_v1= sqrt( v1.x * v1.x + v1.y * v1.y +  v1.z * v1.z);  //glm::length
-	float abs_v2=sqrt( v2.x * v2.x + v2.y * v2.y +  v2.z * v2.z); //glm::length
+	double abs_v1= sqrt( v1.x * v1.x + v1.y * v1.y +  v1.z * v1.z);  //glm::length
+	double abs_v2=sqrt( v2.x * v2.x + v2.y * v2.y +  v2.z * v2.z); //glm::length
 
-	float cos=(abs_v1*abs_v2)>0? ::cos( prod_sum / (abs_v1*abs_v2)): 0; //if division by zero cos= 0
+	double cos=(abs_v1*abs_v2)>0? ::cos( prod_sum / (abs_v1*abs_v2)): 0; //if division by zero cos= 0
 	 float c=::acos(cos);
 	if(c>=0 && c <= ( M_PI))
 		return c;
 	else
 		return GetAngle(v2, v1);
-	
+
 
 }
 

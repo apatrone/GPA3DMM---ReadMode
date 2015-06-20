@@ -72,10 +72,10 @@ void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_FRAME1, frame1);
 	DDX_Control(pDX, IDC_CHECK1, m_checkbox1);
 	DDX_Control(pDX, IDC_CHECK2, m_checkbox2);
-	DDX_Control(pDX, IDC_GAUSS_INF, gauss_inf);
-	DDX_Control(pDX, IDC_GAUSS_SUP, gauss_sup);
-	DDX_Control(pDX, IDC_USE_MEAN, m_use_mean1);
-	DDX_Control(pDX, IDC_USE_MEAN2, m_use_mean2);
+	//DDX_Control(pDX, IDC_GAUSS_INF, gauss_inf);
+	//DDX_Control(pDX, IDC_GAUSS_SUP, gauss_sup);
+	//DDX_Control(pDX, IDC_USE_MEAN, m_use_mean1);
+	//DDX_Control(pDX, IDC_USE_MEAN2, m_use_mean2);
 }
 BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
@@ -106,19 +106,17 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK1, &CReadModeDlg::OnBnClickedCheck1)
 	ON_BN_CLICKED(IDC_CHECK2, &CReadModeDlg::OnBnClickedCheck2)
 	ON_EN_CHANGE(IDC_INFO, &CReadModeDlg::OnEnChangeInfo)
-//	ON_EN_CHANGE(IDC_GAUSS_INF, &CReadModeDlg::OnEnChangeGaussInf)
-//	ON_EN_CHANGE(IDC_GAUSS_SUP, &CReadModeDlg::OnEnChangeGaussSup)
 	ON_EN_KILLFOCUS(IDC_GAUSS_INF, &CReadModeDlg::OnKillfocusGaussInf)
 	ON_EN_KILLFOCUS(IDC_GAUSS_SUP, &CReadModeDlg::OnKillfocusGaussSup)
-	ON_EN_CHANGE(IDC_GAUSS_INF, &CReadModeDlg::OnChangeGaussInf)
-	ON_BN_CLICKED(IDC_USE_MEAN, &CReadModeDlg::OnClickedUseMean)
-	ON_BN_CLICKED(IDC_USE_MEAN2, &CReadModeDlg::OnClickedUseMean2)
-	ON_COMMAND(IDC_USE_GAUSS, &CReadModeDlg::OnUseGauss)
-	ON_COMMAND(IDC_USE_GAUSS2, &CReadModeDlg::OnUseGauss2)
-	ON_BN_CLICKED(IDC_USE_NONE, &CReadModeDlg::OnClickedUseNone)
-	ON_BN_CLICKED(IDC_USE_NONE2, &CReadModeDlg::OnClickedUseNone2)
-	ON_BN_CLICKED(IDC_USE_SI, &CReadModeDlg::OnBnClickedUseSi)
-	ON_BN_CLICKED(IDC_USE_SI2, &CReadModeDlg::OnBnClickedUseSi2)
+
+	ON_BN_CLICKED(IDC_USECURV11, &CReadModeDlg::OnBnClickedUsecurv11)
+	ON_BN_CLICKED(IDC_USECURV12, &CReadModeDlg::OnBnClickedUsecurv12)
+	ON_BN_CLICKED(IDC_USECURV13, &CReadModeDlg::OnBnClickedUsecurv13)
+	ON_BN_CLICKED(IDC_USECURV14, &CReadModeDlg::OnBnClickedUsecurv14)
+	ON_BN_CLICKED(IDC_USECURV15, &CReadModeDlg::OnBnClickedUsecurv15)
+	ON_BN_CLICKED(IDC_USECURV16, &CReadModeDlg::OnBnClickedUsecurv16)
+	ON_BN_CLICKED(IDC_USECURV17, &CReadModeDlg::OnBnClickedUsecurv17)
+	ON_BN_CLICKED(IDC_USECURV18, &CReadModeDlg::OnBnClickedUsecurv18)
 END_MESSAGE_MAP()
 
 
@@ -173,6 +171,8 @@ BOOL CReadModeDlg::OnInitDialog()
 	CRect rect;
 	protein1->wnd->GetClientRect(rect);
 	trackball = new CTrackBall(rect.Width(), rect.Height());
+	 //CheckRadioButton(IDC_USE_CURV1,IDC_USE_CURV4,-1);
+	 //CheckRadioButton(IDC_USE_CURV10,IDC_USE_CURV13,-1);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 void CReadModeDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -716,19 +716,10 @@ void CReadModeDlg::OnKillfocusGaussSup()
 }
 
 
-void CReadModeDlg::OnChangeGaussInf()
+
+void CReadModeDlg::OnBnClickedUsecurv11() //use mean 1
 {
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CDialogEx::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-}
-
-
-void CReadModeDlg::OnClickedUseMean()
-{
+	// TODO: Add your control notification handler code here
 	if(protein1->m_rof!=NULL){
 		protein1->m_rof->use_curvature=MEAN;
 	}
@@ -737,7 +728,42 @@ void CReadModeDlg::OnClickedUseMean()
 }
 
 
-void CReadModeDlg::OnClickedUseMean2()
+void CReadModeDlg::OnBnClickedUsecurv12() //use gauss 1
+{
+	// TODO: Add your control notification handler code here
+	if(protein1->m_rof!=NULL){
+		protein1->m_rof->use_curvature=GAUSS;
+	}
+	// TODO: Add your command handler code here
+	curv1=GAUSS;
+}
+
+
+void CReadModeDlg::OnBnClickedUsecurv13()  //use shape index 1
+{
+	// TODO: Add your control notification handler code here
+		// TODO: Add your control notification handler code here
+	if(protein1->m_rof!=NULL){
+		protein1->m_rof->use_curvature=SHAPEINDEX;
+	}
+	// TODO: Add your command handler code here
+	curv1=SHAPEINDEX;
+}
+
+
+void CReadModeDlg::OnBnClickedUsecurv14() //use none 1
+{
+	// TODO: Add your control notification handler code here
+		// TODO: Add your control notification handler code here
+	if(protein1->m_rof!=NULL){
+		protein1->m_rof->use_curvature=NONE;
+	}
+	// TODO: Add your command handler code here
+	curv1=NONE;
+}
+
+
+void CReadModeDlg::OnBnClickedUsecurv15() //use mean 2
 {
 	// TODO: Add your control notification handler code here
 	if(protein2->m_rof!=NULL){
@@ -747,18 +773,9 @@ void CReadModeDlg::OnClickedUseMean2()
 }
 
 
-void CReadModeDlg::OnUseGauss()
+void CReadModeDlg::OnBnClickedUsecurv16() //use gauss 2
 {
-	if(protein1->m_rof!=NULL){
-		protein1->m_rof->use_curvature=GAUSS;
-	}
-	// TODO: Add your command handler code here
-	curv1=GAUSS;
-}
-
-
-void CReadModeDlg::OnUseGauss2()
-{
+	// TODO: Add your control notification handler code here
 	// TODO: Add your command handler code here
 	if(protein2->m_rof!=NULL){
 		protein2->m_rof->use_curvature=GAUSS;
@@ -767,43 +784,21 @@ void CReadModeDlg::OnUseGauss2()
 }
 
 
-void CReadModeDlg::OnClickedUseNone()
-{
-	// TODO: Add your control notification handler code here
-	if(protein1->m_rof!=NULL){
-		protein1->m_rof->use_curvature=NONE;
-	}
-	// TODO: Add your command handler code here
-	curv1=NONE;
-}
-
-
-void CReadModeDlg::OnClickedUseNone2()
-{
-	// TODO: Add your control notification handler code here
-	if(protein2->m_rof!=NULL){
-		protein2->m_rof->use_curvature=NONE;
-	}
-	curv2=NONE;
-}
-
-
-void CReadModeDlg::OnBnClickedUseSi()
-{
-	// TODO: Add your control notification handler code here
-	if(protein1->m_rof!=NULL){
-		protein1->m_rof->use_curvature=SHAPEINDEX;
-	}
-	// TODO: Add your command handler code here
-	curv1=SHAPEINDEX;
-}
-
-
-void CReadModeDlg::OnBnClickedUseSi2()
+void CReadModeDlg::OnBnClickedUsecurv17() //use shape index 2
 {
 	// TODO: Add your control notification handler code here
 	if(protein2->m_rof!=NULL){
 		protein2->m_rof->use_curvature=SHAPEINDEX;
 	}
 	curv2=SHAPEINDEX;
+}
+
+
+void CReadModeDlg::OnBnClickedUsecurv18() //use none 2
+{
+	// TODO: Add your control notification handler code here
+	if(protein2->m_rof!=NULL){
+		protein2->m_rof->use_curvature=NONE;
+	}
+	curv2=NONE;
 }

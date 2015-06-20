@@ -109,4 +109,12 @@ public:
 	afx_msg void OnClickedUseNone2();
 	afx_msg void OnBnClickedUseSi();
 	afx_msg void OnBnClickedUseSi2();
+	afx_msg void OnBnClickedUsecurv11();
+	afx_msg void OnBnClickedUsecurv12();
+	afx_msg void OnBnClickedUsecurv13();
+	afx_msg void OnBnClickedUsecurv14();
+	afx_msg void OnBnClickedUsecurv15();
+	afx_msg void OnBnClickedUsecurv16();
+	afx_msg void OnBnClickedUsecurv17();
+	afx_msg void OnBnClickedUsecurv18();
 };
