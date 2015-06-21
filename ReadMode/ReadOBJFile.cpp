@@ -822,6 +822,8 @@ void ReadOBJFile::EstimatekGkM(void)
 		float sum_dihedral_angles=0; //for kM
 		//std::list<OrderedEdges> ordered_edges ;
 		std::vector<glm::vec3> ordered_edges;
+		//----------------------
+		std::vector<GLEdge> order_edges;
 		for(int j=0; j<vertexIndices.size(); j+=3)
 		{	
 			//if current vertex belongs to the current triangle/face
@@ -834,6 +836,9 @@ void ReadOBJFile::EstimatekGkM(void)
 				glm::vec3 p3;
 				float angle;
 				float area;
+				//------
+				GLEdge e1;
+				GLEdge e2;
 
 				if( VertexEqual(m_vcalc[vertexIndices[j]],m_vcalc[i]))
 				{
@@ -863,6 +868,15 @@ void ReadOBJFile::EstimatekGkM(void)
 				//store both edges for kM
 				ordered_edges.push_back(v1);
 				ordered_edges.push_back(v2);
+
+				//----------------------------
+				e1.e=v1;
+				e1.p=p2;
+				e2.e=v2;
+				e2.p=p3;
+				order_edges.push_back(e1);
+				order_edges.push_back(e2);
+
 			}
 
 		}
@@ -874,8 +888,68 @@ void ReadOBJFile::EstimatekGkM(void)
 		glm::vec3 cross_edge;
 		glm::vec3 cross_next_edge;
 		ordered_edges=OrderEdges(ordered_edges);
+		//---------------------
+		GLEdge prev_edge;
+		GLEdge current_edge;
+		GLEdge nxt_edge;
+		order_edges=OrderGLEdges(order_edges);
+		int ridge_or_valley=1;
+		float coeff;
+		for(int k=1; k<order_edges.size()-1; k++){ 
 
-		for(int k=1; k<ordered_edges.size()-1; k++){ 
+			prev_edge=order_edges[k-1];
+			current_edge=order_edges[k];
+			nxt_edge=order_edges[k+1];
+			//angle for kG
+			sum_angles+=GetAngle(prev_edge.e,current_edge.e);
+			//area for kG and kM
+			sum_area+=GetArea(prev_edge.e,current_edge.e);
+			//get normals and calculate dihedral angle (angle between normals) * length of edge
+			cross_edge=glm::cross(prev_edge.e, current_edge.e);
+			cross_next_edge=glm::cross(current_edge.e, nxt_edge.e);
+			//
+			coeff=glm::dot((nxt_edge.p - prev_edge.p ) , cross_edge/glm::length(cross_edge));
+			if(coeff<0)
+				ridge_or_valley=1; //convex
+			else if(coeff==0)
+				ridge_or_valley=0;//planar
+			else if(coeff>0)
+				ridge_or_valley=-1; //concave
+			//*/
+			sum_dihedral_angles+= ridge_or_valley * GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(current_edge.e);
+		
+		}
+		//angle for kG
+		sum_angles+=GetAngle(current_edge.e, nxt_edge.e) + GetAngle( nxt_edge.e,order_edges[0].e) ;
+		//area for kG and kM
+		sum_area+=GetArea(current_edge.e, nxt_edge.e)+ GetArea( nxt_edge.e,order_edges[0].e);
+
+		cross_edge=glm::cross(current_edge.e,  nxt_edge.e);
+		cross_next_edge=glm::cross( nxt_edge.e, order_edges[0].e);
+		
+		coeff=glm::dot((order_edges[0].p - current_edge.p ) , cross_edge/glm::length(cross_edge));
+		if(coeff<0)
+			ridge_or_valley=1; //convex
+		else if(coeff==0)
+			ridge_or_valley=0;//planar
+		else if(coeff>0)
+			ridge_or_valley=-1; //concave
+
+		sum_dihedral_angles+=ridge_or_valley*GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(nxt_edge.e);
+		cross_edge=glm::cross( nxt_edge.e,  order_edges[0].e);
+		cross_next_edge=glm::cross(order_edges[0].e, order_edges[1].e);
+
+		coeff=glm::dot((order_edges[1].p - nxt_edge.p ) , cross_edge/glm::length(cross_edge));
+		if(coeff<0)
+			ridge_or_valley=1; //convex
+		else if(coeff==0)
+			ridge_or_valley=0;//planar
+		else if(coeff>0)
+			ridge_or_valley=-1; //concave
+
+		sum_dihedral_angles+=ridge_or_valley*GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge))* glm::length( order_edges[0].e);
+		//-------------------------
+		/*for(int k=1; k<ordered_edges.size()-1; k++){ 
 
 			previous_edge=ordered_edges[k-1];
 			edge=ordered_edges[k];
@@ -901,7 +975,7 @@ void ReadOBJFile::EstimatekGkM(void)
 		cross_edge=glm::cross(next_edge,  ordered_edges[0]);
 		cross_next_edge=glm::cross(ordered_edges[0], ordered_edges[1]);
 		sum_dihedral_angles+=GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge))* glm::length( ordered_edges[0]);
-
+		*/
 		
 		//calc kG
 		m_vcalc[i].kG= (2* M_PI - sum_angles)/(sum_area) ;  
@@ -1012,9 +1086,65 @@ std::vector<glm::vec3> ReadOBJFile::OrderEdges(std::vector<glm::vec3> edges){
 
 
 float ReadOBJFile::GetShapeIndex(float kG, float kM){
-		float k1 = kM + sqrt( kM*kM - kG); 
-		float k2 = kM - sqrt( kM*kM - kG);
+		float k1 = kM + sqrt( ::abs(kM*kM - kG)); 
+		float k2 = kM - sqrt( ::abs(kM*kM - kG));
 		float shape_index= -2 / M_PI * ::atan( (k1+k2) / (k1 - k2));
 		return shape_index;
 
+}
+
+//--------------------------
+std::vector<GLEdge> ReadOBJFile::OrderGLEdges(std::vector<GLEdge> edges){
+	//std::vector<glm::vec3> edges;  //For test
+	//glm::vec3 v1=glm::vec3(1);
+	//glm::vec3 v2=glm::vec3(2);
+	//glm::vec3 v3=glm::vec3(3);
+	//glm::vec3 v4=glm::vec3(4);
+	//edges.push_back(v1);edges.push_back(v2);edges.push_back(v3);edges.push_back(v4);edges.push_back(v2);edges.push_back(v4);	edges.push_back(v1);edges.push_back(v3);
+	
+	
+	for(int i=0; i<edges.size()-2; i+=2){
+		if( edges[i+1].e != edges[i].e ){
+			if(edges[i+1].e== edges[i+3].e){ //if next couple of vectors has it's second element equal to the second vector of this couple
+				GLEdge tmp=edges[i+2]; //swap the vectors of the next couple
+				edges[i+2]=edges[i+3];
+				edges[i+3]=tmp;
+			}
+			else{    //find a couple of vectors which contain v1
+				for(int j=i+4; j<edges.size(); j+=2){ //find another couple which contains the second vector
+					if( edges[i+1].e == edges[j].e ){  //if the couple of vectors has it's first element equal to the second vector of this couple swap
+						GLEdge tmp=edges[i+2];
+						edges[i+2]=edges[j];
+						edges[j]=tmp;
+						tmp=edges[i+3];
+						edges[i+3]=edges[j+1];
+						edges[j+1]=tmp;
+						break;
+					}
+					else if( edges[i+1].e == edges[j+1].e ){//if the couple of vectors has it's second element equal to the second vector of this couple swap 
+						GLEdge tmp=edges[i+2];
+						edges[i+2]=edges[j+1];
+						edges[j+1]=tmp;
+						tmp=edges[i+3];
+						edges[i+3]=edges[j];
+						edges[j]=tmp;
+						break;
+					}
+	
+				}
+
+			}
+
+		}
+
+	}
+	 //delete duplicates (ex: V1 V2 V2 V4 V4 V3 V3 V1 --> V1 V2 V4 V3)
+	for(int i=2; i<edges.size(); i++){ 
+		edges.erase(edges.begin() + i);
+	}
+	//edges.erase(edges.end()-1);
+	if(edges[edges.size()-1].e == edges[0].e)
+		edges.erase(edges.end()-1);
+	return edges;
+	
 }

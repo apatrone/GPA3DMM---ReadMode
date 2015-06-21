@@ -37,7 +37,10 @@ typedef  struct Texture         //保存贴图信息
 	int nTextureIndex;
 }GLTexture;
 
-
+typedef struct Edge{
+	glm::vec3 e;
+	glm::vec3 p;
+}GLEdge;
 
 typedef  struct Face            //保存面信息
 {
@@ -70,6 +73,7 @@ public:
 	bool ReadFile(char * FileNmae);
 	bool ReadLine(FILE *fp,char *str);
 	std::vector<glm::vec3> OrderEdges(std::vector<glm::vec3> edges);
+	std::vector<GLEdge> ReadOBJFile::OrderGLEdges(std::vector<GLEdge> edges); //----
 	float GetShapeIndex(float kG, float kM);
 	void GetInfo();
 	void GetMtlInfo();

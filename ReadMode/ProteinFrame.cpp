@@ -359,7 +359,7 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 	GLfloat specular1[]={1.0f,0.0f,1.0f,1.0f};
 	GLfloat shininess[]={10.0f};
 	
-	if(m_init==false){
+	//if(m_init==false){
 		PIXELFORMATDESCRIPTOR pfd={sizeof(PIXELFORMATDESCRIPTOR),1,PFD_SUPPORT_OPENGL|PFD_DRAW_TO_WINDOW|PFD_DOUBLEBUFFER,PFD_TYPE_RGBA,32,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,PFD_MAIN_PLANE,0,0,0,0};
 		m_init=true;
@@ -374,7 +374,7 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 		//save protein frame context 
 		m_hRC=::wglCreateContext(pDC->m_hDC);
 		::wglMakeCurrent(pDC->m_hDC,m_hRC); 
-	}
+	//}
 	CRect rect;
 	pDlg->GetClientRect(rect);
 
