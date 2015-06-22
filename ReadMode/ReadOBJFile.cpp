@@ -813,18 +813,18 @@ void ReadOBJFile::EstimatekGkM(void)
 { 
 	
     //std::sort(s.begin(), s.end(), customLess);
-	for(int i=0; i<size_m_v; i++)
+	for(int i=0; i<size_m_v; i++) //for each vertex
 	{
 		int p=0; //for test
 		int r=0;//For test
 		float sum_angles=0; //for kG
 		float sum_area=0;//for kG and kM
 		float sum_dihedral_angles=0; //for kM
-		//std::list<OrderedEdges> ordered_edges ;
-		std::vector<glm::vec3> ordered_edges;
+		
+		//std::vector<glm::vec3> ordered_edges;
 		//----------------------
 		std::vector<GLEdge> order_edges;
-		for(int j=0; j<vertexIndices.size(); j+=3)
+		for(int j=0; j<vertexIndices.size(); j+=3) //for each faceof the mesh
 		{	
 			//if current vertex belongs to the current triangle/face
 			//if(vertexIndices[j]==i || etc. is the same?
@@ -866,8 +866,8 @@ void ReadOBJFile::EstimatekGkM(void)
 				area=GetArea(v1, v2);
 				sum_area+=area;*/
 				//store both edges for kM
-				ordered_edges.push_back(v1);
-				ordered_edges.push_back(v2);
+			//	ordered_edges.push_back(v1);
+			//	ordered_edges.push_back(v2);
 
 				//----------------------------
 				e1.e=v1;
@@ -882,21 +882,20 @@ void ReadOBJFile::EstimatekGkM(void)
 		}
 
 		//calc kM
-		glm::vec3 previous_edge;
-		glm::vec3 edge;
-		glm::vec3 next_edge;
+		//glm::vec3 previous_edge;
+		//glm::vec3 edge;
+		//glm::vec3 next_edge;
 		glm::vec3 cross_edge;
 		glm::vec3 cross_next_edge;
-		ordered_edges=OrderEdges(ordered_edges);
+		//ordered_edges=OrderEdges(ordered_edges);
 		//---------------------
 		GLEdge prev_edge;
 		GLEdge current_edge;
 		GLEdge nxt_edge;
 		order_edges=OrderGLEdges(order_edges);
 		int ridge_or_valley=1;
-		float coeff;
+		float coeff; float coeff2;
 		for(int k=1; k<order_edges.size()-1; k++){ 
-
 			prev_edge=order_edges[k-1];
 			current_edge=order_edges[k];
 			nxt_edge=order_edges[k+1];
@@ -908,13 +907,17 @@ void ReadOBJFile::EstimatekGkM(void)
 			cross_edge=glm::cross(prev_edge.e, current_edge.e);
 			cross_next_edge=glm::cross(current_edge.e, nxt_edge.e);
 			//
-			coeff=glm::dot((nxt_edge.p - prev_edge.p ) , cross_edge/glm::length(cross_edge));
-			if(coeff<0)
+			//coeff2=glm::dot( cross_edge/glm::length(cross_edge) , cross_next_edge/glm::length(cross_next_edge));
+			//if(Collinear(cross_edge/glm::length(cross_edge) , cross_next_edge/glm::length(cross_next_edge))==false){
+				coeff=glm::dot((nxt_edge.p - prev_edge.p ) , cross_edge/glm::length(cross_edge));
+			if(coeff<-0.15)
 				ridge_or_valley=1; //convex
-			else if(coeff==0)
-				ridge_or_valley=0;//planar
-			else if(coeff>0)
+			else if(coeff>0.15)
 				ridge_or_valley=-1; //concave
+			else 
+				ridge_or_valley=0;//planar
+		//	}
+		//	else ridge_or_valley=0;
 			//*/
 			sum_dihedral_angles+= ridge_or_valley * GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(current_edge.e);
 		
@@ -926,27 +929,35 @@ void ReadOBJFile::EstimatekGkM(void)
 
 		cross_edge=glm::cross(current_edge.e,  nxt_edge.e);
 		cross_next_edge=glm::cross( nxt_edge.e, order_edges[0].e);
-		
-		coeff=glm::dot((order_edges[0].p - current_edge.p ) , cross_edge/glm::length(cross_edge));
-		if(coeff<0)
-			ridge_or_valley=1; //convex
-		else if(coeff==0)
-			ridge_or_valley=0;//planar
-		else if(coeff>0)
-			ridge_or_valley=-1; //concave
+
+	//	coeff2=glm::dot( cross_edge/glm::length(cross_edge) , cross_next_edge/glm::length(cross_next_edge));
+
+//		if(Collinear(cross_edge/glm::length(cross_edge) , cross_next_edge/glm::length(cross_next_edge))==false){
+			coeff=glm::dot((order_edges[0].p - current_edge.p ) , cross_edge/glm::length(cross_edge));
+			if(coeff<-0.15)
+				ridge_or_valley=1; //convex
+			else if(coeff>0.15)
+				ridge_or_valley=-1; //concave
+			else 
+				ridge_or_valley=0;//planar
+		//}
+		//else ridge_or_valley=0;
 
 		sum_dihedral_angles+=ridge_or_valley*GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(nxt_edge.e);
+		
 		cross_edge=glm::cross( nxt_edge.e,  order_edges[0].e);
 		cross_next_edge=glm::cross(order_edges[0].e, order_edges[1].e);
-
-		coeff=glm::dot((order_edges[1].p - nxt_edge.p ) , cross_edge/glm::length(cross_edge));
-		if(coeff<0)
-			ridge_or_valley=1; //convex
-		else if(coeff==0)
-			ridge_or_valley=0;//planar
-		else if(coeff>0)
-			ridge_or_valley=-1; //concave
-
+		//coeff2=glm::dot( cross_edge/glm::length(cross_edge) , cross_next_edge/glm::length(cross_next_edge));
+			//if(Collinear(cross_edge/glm::length(cross_edge) , cross_next_edge/glm::length(cross_next_edge))==false){
+			coeff=glm::dot((order_edges[1].p - nxt_edge.p ) , cross_edge/glm::length(cross_edge));
+			if(coeff<-0.15)
+				ridge_or_valley=1; //convex
+			else if(coeff>0.15)
+				ridge_or_valley=-1; //concave
+			else 
+				ridge_or_valley=0;//planar
+		//}
+		//else ridge_or_valley=0;
 		sum_dihedral_angles+=ridge_or_valley*GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge))* glm::length( order_edges[0].e);
 		//-------------------------
 		/*for(int k=1; k<ordered_edges.size()-1; k++){ 
@@ -978,9 +989,9 @@ void ReadOBJFile::EstimatekGkM(void)
 		*/
 		
 		//calc kG
-		m_vcalc[i].kG= (2* M_PI - sum_angles)/(sum_area) ;  
+		m_vcalc[i].kG= (2* M_PI - sum_angles)/(sum_area/3) ;  
 		//calc kM
-		m_vcalc[i].kM=   sum_dihedral_angles/(4 * sum_area ) ;
+		m_vcalc[i].kM=   0.25 * sum_dihedral_angles/(4 * sum_area/3 ) ;
 		m_vcalc[i].shape_index = GetShapeIndex(m_vcalc[i].kG,m_vcalc[i].kM);
 	}
 
@@ -1147,4 +1158,16 @@ std::vector<GLEdge> ReadOBJFile::OrderGLEdges(std::vector<GLEdge> edges){
 		edges.erase(edges.end()-1);
 	return edges;
 	
+}
+
+bool ReadOBJFile::Collinear(glm::vec3 v1,glm::vec3 v2)
+{
+	float a, b ,c; //if collinear, a, b and c are equal, so a/b = 1 and b/c = 1
+	a=v1.x/v2.x;
+	b=v1.y/v2.y;
+	c=v1.z/v2.z;
+	if(a/b >0.9 && a/b <1.1 && b/c >0.9 && b/c <1.1)
+		return true;
+	return false;
+
 }

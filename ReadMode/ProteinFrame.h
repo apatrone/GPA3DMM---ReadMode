@@ -8,7 +8,6 @@
 #include "GL/glut.h"
 #include <tbb/tbb.h>
 
-#include "TrackBall.h"
 #define ROTATE_SPEED	  0.05
 
 
@@ -34,7 +33,7 @@ public:
 	float m_x;
 	float m_y;
 	float m_z;
-	
+	double previousTime;
 	float m_rot_x;
 	float m_rot_y;
 	float m_rot_z;

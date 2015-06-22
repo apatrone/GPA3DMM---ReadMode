@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ProteinFrame.h"
 #include "objloader.hpp"
+#include "TrackBall.h"
 //#include <tbb/tbb.h>
 #include <tbb/compat/condition_variable>
 #include <tbb/compat/thread>
@@ -20,6 +21,7 @@ ProteinFrame::ProteinFrame(void)
 	m_rot_y=0;
 	m_rot_z=0;
 	m_rotation=0;
+	m_LDown=false;
 	//自动旋转为y轴，默认不旋转
 	m_rof=NULL;//读取obj文件的对象
 	flag=false;
@@ -29,6 +31,7 @@ ProteinFrame::ProteinFrame(void)
 	kill_thread=false;
 	speed=60;
 	m_useNE=false;
+	previousTime=::GetTickCount();
 }
 
 int ProteinFrame::LoadProtein(char *path){
@@ -122,8 +125,11 @@ void* MyThread(ProteinFrame *p)
 	p->LoadFrame(p->wnd);///////////////////////////////////////////////////////////////////
 
 	while(p->kill_thread==false){
-		::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
-	
+		bool flag=::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
+		if(flag==true)
+			int i=1;
+		else
+			int i=1;
 		//if(p->flag){
 			glDrawBuffer(GL_FRONT_AND_BACK);
 			::glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -373,7 +379,11 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 		::SetPixelFormat(pDC->m_hDC,PixelFormat,&pfd);
 		//save protein frame context 
 		m_hRC=::wglCreateContext(pDC->m_hDC);
-		::wglMakeCurrent(pDC->m_hDC,m_hRC); 
+		bool flag=::wglMakeCurrent(pDC->m_hDC,m_hRC); 
+		if(flag==true)
+			int i=1;
+		else
+			int i=1;
 	//}
 	CRect rect;
 	pDlg->GetClientRect(rect);
@@ -426,11 +436,11 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 }
 
 void ProteinFrame::KeyInput(int wParam, int nTimes){
-	static double previousTime=::GetTickCount();
+	
 	const double z=0.01;const double y=0.9;
 	currentTime=::GetTickCount();
 	deltaTime = float(currentTime - previousTime)/1000;//for seconde /1000 
-	
+	if(deltaTime>0.5) deltaTime=0.1; //if it's been too long, don't do a 180 rotation!
 	switch(wParam){
 		case (int)'W': case (int)'Z':  case VK_UP: 
 			m_rot_x+=deltaTime*speed;  //more fluid but only object on the left moves, wtf
@@ -441,7 +451,7 @@ void ProteinFrame::KeyInput(int wParam, int nTimes){
 		case (int)'Q': case (int)'A': case VK_LEFT:
 			m_rot_y-=deltaTime*speed;
 			//m_rot_y-= y+nTimes/10000000000;
-			previousTime = currentTime;
+			//previousTime = currentTime;
 			break;
 		case (int)'S': case VK_DOWN: 
 			m_rot_x-=deltaTime*speed;
@@ -473,6 +483,7 @@ void ProteinFrame::Reset(void){
 	m_AutoRotation=false;
 	flag_threadCreated=false;
 	kill_thread=false;
+	m_LDown=false;
 	//m_init=false;
 }
 

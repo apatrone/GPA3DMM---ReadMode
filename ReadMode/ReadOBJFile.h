@@ -82,6 +82,7 @@ public:
 	float GetAngle(glm::vec3 v1, glm::vec3 v2);
 	float GetArea(glm::vec3 v1, glm::vec3 v2);
 	glm::vec3 GetCrossProduct(glm::vec3 v1,glm::vec3 v2);
+	bool ReadOBJFile::Collinear(glm::vec3 v1,glm::vec3 v2);
 	char  m_FileName[256];
 	int m_nCount;
 	GLVertex *m_v;

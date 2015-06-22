@@ -3,6 +3,7 @@
 //
 
 #include "stdafx.h"
+#include "afxwin.h"
 #include "ReadMode.h"
 #include "ReadModeDlg.h"
 #include "afxdialogex.h"
@@ -69,13 +70,15 @@ void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_INFO, m_info);
 	DDX_Control(pDX, IDC_SLIDER1, m_SpeedSlider);
 
-	DDX_Control(pDX, IDC_FRAME1, frame1);
+
 	DDX_Control(pDX, IDC_CHECK1, m_checkbox1);
 	DDX_Control(pDX, IDC_CHECK2, m_checkbox2);
 	//DDX_Control(pDX, IDC_GAUSS_INF, gauss_inf);
 	//DDX_Control(pDX, IDC_GAUSS_SUP, gauss_sup);
 	//DDX_Control(pDX, IDC_USE_MEAN, m_use_mean1);
 	//DDX_Control(pDX, IDC_USE_MEAN2, m_use_mean2);
+	DDX_Control(pDX, IDC_USECURV11, m_radio_button_curvature1);
+	DDX_Control(pDX, IDC_USECURV15, m_radio_button_curvature2);
 }
 BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
@@ -102,7 +105,7 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_CHAR()
 	ON_WM_KEYUP()
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER1, &CReadModeDlg::OnCustomdrawSlider1)
-	ON_STN_CLICKED(IDC_FRAME1, &CReadModeDlg::OnStnClickedFrame1)
+
 	ON_BN_CLICKED(IDC_CHECK1, &CReadModeDlg::OnBnClickedCheck1)
 	ON_BN_CLICKED(IDC_CHECK2, &CReadModeDlg::OnBnClickedCheck2)
 	ON_EN_CHANGE(IDC_INFO, &CReadModeDlg::OnEnChangeInfo)
@@ -156,7 +159,7 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_SpeedSlider.SetPos(59);
 	m_SpeedSlider.UpdateData();
 	m_move=0;
-	protein1->wnd=CWnd::GetDlgItem(IDC_FRAME1);
+	protein1->wnd=CWnd::GetDlgItem(IDC_SHOW1);
 	protein2->wnd=CWnd::GetDlgItem(IDC_SHOW2);
 	m_infobox_handle=GetDlgItem(IDC_INFO);
 	m_gauss_inf_handle=GetDlgItem(IDC_GAUSS_INF);
@@ -170,9 +173,9 @@ BOOL CReadModeDlg::OnInitDialog()
 	curv2=MEAN;
 	CRect rect;
 	protein1->wnd->GetClientRect(rect);
-	trackball = new CTrackBall(rect.Width(), rect.Height());
-	 //CheckRadioButton(IDC_USE_CURV1,IDC_USE_CURV4,-1);
-	 //CheckRadioButton(IDC_USE_CURV10,IDC_USE_CURV13,-1);
+//	trackball = new CTrackBall(rect.Width(), rect.Height(), protein1);
+	m_radio_button_curvature1.SetCheck(true);
+	m_radio_button_curvature2.SetCheck(true);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 void CReadModeDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -377,18 +380,32 @@ void CReadModeDlg::OnBnClickedUpdate()//stop button
 void CReadModeDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: Add your message handler code here and/or call default
-	if (protein1->m_move)
-	{
+	CRect rect;
+	protein1->wnd->GetWindowRect(rect); 
+	CRect rect2; 
+	protein2->wnd->GetWindowRect(rect2);
+	this->ClientToScreen(&point);
+
+	if(m_move==1){ //dual move
+		if(rect.PtInRect(point) || rect2.PtInRect(point)){
+			protein1->m_LDown=true;
+			protein2->m_LDown=true;
+			m_MouseL=point;
+		}
+	} 
+	else if(m_move==2&& rect.PtInRect(point) ){ //move 1
 		protein1->m_LDown=true;
 		m_MouseL=point;
 	}
-	if (protein1->m_rotation)
-	{
-		protein1->m_rot=true;
+	else if(m_move==3&& rect2.PtInRect(point) ){ //move 2
+		protein2->m_LDown=true;
 		m_MouseL=point;
 	}
-	trackball->startMotion(point.x, point.y);
-	::SetFocus(::GetActiveWindow());
+	
+	
+
+	//trackball->startMotion(point.x, point.y);
+	//::SetFocus(::GetActiveWindow());
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
 void CReadModeDlg::OnLButtonUp(UINT nFlags, CPoint point)
@@ -396,21 +413,22 @@ void CReadModeDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	// TODO: Add your message handler code here and/or call default
 	protein1->m_LDown=false;
 	protein1->m_rot=false;
-	trackball->stopMotion();
+	protein2->m_LDown=false;
+	protein2->m_rot=false;
+	//trackball->stopMotion();
+	::SetFocus(::GetActiveWindow());
 	CDialogEx::OnLButtonUp(nFlags, point);
 }
 void CReadModeDlg::OnMouseMove(UINT nFlags, CPoint point)
 {
-	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000)){
-		trackball->onMouseMotion(point.x, point.y);
-	}
-	else if (protein1->m_LDown)
+
+	if (protein1->m_LDown)
 	{
 		if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000)){
 		//(GetAsyncKeyState(VK_CONTROL) & 0x8000) &&
-			protein1->m_x+=0.5*(point.x-m_MouseL.x);
-			protein1->m_y+=0.5*(m_MouseL.y-point.y);
-			m_MouseL=point;
+			protein1->m_rot_x+=0.5*(m_MouseL.y-point.y);
+			protein1->m_rot_y-=0.5*(m_MouseL.x-point.x);
+			
 			//protein1->Draw();
 		}
 	}
@@ -432,7 +450,35 @@ void CReadModeDlg::OnMouseMove(UINT nFlags, CPoint point)
 		}
 	
 	}
+	if (protein2->m_LDown)
+	{
+		if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000)){
+		//(GetAsyncKeyState(VK_CONTROL) & 0x8000) &&
+			protein2->m_rot_x+=0.5*(m_MouseL.y-point.y);
+			protein2->m_rot_y-=0.5*(m_MouseL.x-point.x);
+			//protein2->Draw();
+		}
+	}
+	else if (protein2->m_rot)
+	{
+
+		if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000))
+		{
+			if ((point.x - m_MouseL.x) != 0)
+			{
+				protein2->m_rot_y = protein2->m_rot_y + ((float)ROTATE_SPEED * (point.x - m_MouseL.x));
+			}
+
+			if ((point.y - m_MouseL.y) != 0)
+			{	
+				protein2->m_rot_x = protein2->m_rot_x + ((float)ROTATE_SPEED * (point.y - m_MouseL.y));
+			}
+			//protein2->Draw();
+		}
 	
+	}
+	if(protein1->m_LDown || protein2->m_LDown)
+		m_MouseL=point;
 	CDialogEx::OnMouseMove(nFlags, point);
 }
 BOOL CReadModeDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
@@ -801,4 +847,17 @@ void CReadModeDlg::OnBnClickedUsecurv18() //use none 2
 		protein2->m_rof->use_curvature=NONE;
 	}
 	curv2=NONE;
+}
+
+
+void CReadModeDlg::PostNcDestroy()
+{
+	// TODO: Add your specialized code here and/or call the base class
+	if(protein1->flag_threadCreated)
+		protein1->kill_thread=true;
+	if(protein2->flag_threadCreated)
+		protein2->kill_thread=true;
+	while(protein1->kill_thread==true || protein2->kill_thread==true){};
+
+	CDialogEx::PostNcDestroy();
 }

@@ -7,7 +7,6 @@
 #include "ReadOBJFile.h"
 #include "GL/glut.h"
 #include "ProteinFrame.h"
-#include "ProteinView.h"
 #include "TrackBall.h"
 #include "afxwin.h"
 #include "afxcmn.h"
@@ -44,7 +43,7 @@ public:
 
 	ProteinFrame *protein1;
 	ProteinFrame *protein2;
-	ProteinView *protView;
+
 	int m_move;
 	afx_msg void OnBnClickedReadm();
 	afx_msg void OnBnClickedMovem();
@@ -52,9 +51,6 @@ public:
 	afx_msg void OnBnClickedUpdate();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 
-
-	
-	
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
@@ -117,4 +113,7 @@ public:
 	afx_msg void OnBnClickedUsecurv16();
 	afx_msg void OnBnClickedUsecurv17();
 	afx_msg void OnBnClickedUsecurv18();
+	virtual void PostNcDestroy();
+	CButton m_radio_button_curvature1;
+	CButton m_radio_button_curvature2;
 };
