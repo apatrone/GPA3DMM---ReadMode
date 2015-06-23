@@ -105,5 +105,6 @@ public:
 	int gauss_sup;
 	int gauss_inf;
 	Curvature use_curvature;
+	bool use_ridgeorvalley;
 };
 

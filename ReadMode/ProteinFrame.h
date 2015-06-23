@@ -25,6 +25,7 @@ public:
 	bool Kill();
 	// Generated message map functions
 public:
+	typedef enum{ FILL, POINT, LINE}PolygonMode;
 	ReadOBJFile *m_rof;
 	CDC*pDC;
 	HGLRC m_hRC;
@@ -43,7 +44,7 @@ public:
 	bool m_read;
 	bool m_rotation;
 	bool m_LDown;
-	bool m_AutoRotation;//自动旋转控制
+	bool m_AutoRotation;
 	float m_Scale;	
 	bool flag_threadCreated;
 	tbb::mutex lock;
@@ -57,5 +58,6 @@ public:
 	CWnd *wnd;
 	std::thread t;
 	bool m_useNE; //normal estimation
+	GLenum polygon_mode;
 
 };

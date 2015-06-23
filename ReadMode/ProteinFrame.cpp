@@ -32,6 +32,7 @@ ProteinFrame::ProteinFrame(void)
 	speed=60;
 	m_useNE=false;
 	previousTime=::GetTickCount();
+	polygon_mode=GL_FILL;
 }
 
 int ProteinFrame::LoadProtein(char *path){
@@ -56,71 +57,6 @@ int ProteinFrame::LoadProtein(char *path){
 
 void* MyThread(ProteinFrame *p)
 {	
-
-/*	GLfloat ambient[]={0.5f,0.5f,0.5f,1.0f};
-	GLfloat diffuse[]={1.0f,1.0f,1.0f,1.0f};
-	GLfloat specular[]={1.0f,1.0f,1.0f,1.0f};
-	GLfloat position[]={0.0f,0.0f,0.0f,1.0f};
-
-	GLfloat ambient1[]={0.0f,0.1f,0.8f,1.0f};
-	GLfloat diffuse1[]={0.0f,0.3f,0.6f,1.0f};
-	GLfloat specular1[]={1.0f,0.0f,1.0f,1.0f};
-	GLfloat shininess[]={10.0f};
-	
-	
-	PIXELFORMATDESCRIPTOR pfd={sizeof(PIXELFORMATDESCRIPTOR),1,PFD_SUPPORT_OPENGL|PFD_DRAW_TO_WINDOW|PFD_DOUBLEBUFFER,PFD_TYPE_RGBA,32,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,PFD_MAIN_PLANE,0,0,0,0};
-
-	
-	p->pDC=p->wnd->GetDC();
-
-	int PixelFormat=::ChoosePixelFormat(p->pDC->m_hDC,&pfd);
-	::SetPixelFormat(p->pDC->m_hDC,PixelFormat,&pfd);
-	//save protein frame context 
-	p->m_hRC=::wglCreateContext(p->pDC->m_hDC);
-	::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC); 
-	
-	CRect rect;
-	p->wnd->GetClientRect(rect);
-
-	::glViewport(0,0,rect.Width(),rect.Height()); //重置当前视口
-	::glEnable(GL_CULL_FACE);
-	::glMatrixMode(GL_PROJECTION);//选择投影矩阵
-	::glLoadIdentity(); //重置投影矩阵
-	::gluPerspective(45.0,rect.Width()/rect.Height(),0.1,1000.0);
-	
-	::glMatrixMode(GL_MODELVIEW);   //选择模型观察矩阵
-	::glLoadIdentity();
-	
-	::glShadeModel(GL_SMOOTH);  //启用阴影平滑
-	::glClearColor(1.0f,1.0f,1.0f,0.3f); //设置黑色背景
-	
-	::glClearDepth(1.0f);  //设置深度缓存
-	::glEnable(GL_DEPTH_TEST); //启用深度测试
-	::glDepthFunc(GL_LESS);// 所作深度测试类型
-	/*::glLightfv(GL_LIGHT1,GL_AMBIENT,ambient);
-	::glLightfv(GL_LIGHT1,GL_DIFFUSE,diffuse);
-	::glLightfv(GL_LIGHT1,GL_SPECULAR,specular);
-	::glLightfv(GL_LIGHT1,GL_POSITION,position);
-	::glLightfv(GL_FRONT_AND_BACK,GL_AMBIENT,ambient1);
-	::glLightfv(GL_FRONT_AND_BACK,GL_DIFFUSE,diffuse1);
-	::glLightfv(GL_FRONT_AND_BACK,GL_SPECULAR,specular1);
-	::glLightfv(GL_FRONT_AND_BACK,GL_POSITION,shininess);
-	::glEnable(GL_LIGHTING);
-	::glEnable(GL_LIGHT1);
-	//设置光照
-	glEnable(GL_LIGHTING);  
-    glEnable(GL_LIGHT0);  
-	
-	const GLfloat lightAmbient[]  = {0.08, 0.08, 0.08, 1.0};  
-	const GLfloat lightDiffuse[]  = {1.0, 1.0, 1.0, 1.0};  
-	const GLfloat lightSpecular[]  = {1.0, 1.0, 1.0, 1.0};  
-	const GLfloat lightPosition[] = {25, 25, 25, 0.0}; 
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);  
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);  
-	glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);  
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition); */
-	
 	
 	p->LoadFrame(p->wnd);///////////////////////////////////////////////////////////////////
 
@@ -134,7 +70,7 @@ void* MyThread(ProteinFrame *p)
 			glDrawBuffer(GL_FRONT_AND_BACK);
 			::glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 			::glLoadIdentity();
-			//::glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+			::glPolygonMode(GL_FRONT_AND_BACK,p->polygon_mode);
 			//::glDisable(GL_DEPTH_TEST);
 			::glPushMatrix();
 			::glTranslatef(p->m_x,p->m_y,p->m_z);
@@ -145,8 +81,8 @@ void* MyThread(ProteinFrame *p)
 			glRotated(p->m_rot_x, 1.0f, 0.0f, 0.0f); 
 
 			::glColor3f(0.0f,1.0f,1.0f);
-			glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);//是环境材质颜色跟踪当前颜色
-			glEnable(GL_COLOR_MATERIAL);//启用材质颜色跟踪当前颜色
+			glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
+			glEnable(GL_COLOR_MATERIAL);
 			p->m_rof->Draw();
 			::glPopMatrix();
 			::glEnable(GL_DEPTH_TEST);
@@ -477,7 +413,6 @@ void ProteinFrame::Reset(void){
 	m_rot_y=0;
 	m_rot_z=0;
 	m_rotation=0;
-	//自动旋转为y轴，默认不旋转
 	free(m_rof);
 	flag=false;
 	m_AutoRotation=false;

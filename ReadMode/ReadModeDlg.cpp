@@ -79,6 +79,8 @@ void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
 	//DDX_Control(pDX, IDC_USE_MEAN2, m_use_mean2);
 	DDX_Control(pDX, IDC_USECURV11, m_radio_button_curvature1);
 	DDX_Control(pDX, IDC_USECURV15, m_radio_button_curvature2);
+	//DDX_Control(pDX, IDC_GAUSS_INF2, gauss_inf2);
+	//DDX_Control(pDX, IDC_GAUSS_SUP2, gauss_sup2);
 }
 BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
@@ -111,6 +113,8 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_EN_CHANGE(IDC_INFO, &CReadModeDlg::OnEnChangeInfo)
 	ON_EN_KILLFOCUS(IDC_GAUSS_INF, &CReadModeDlg::OnKillfocusGaussInf)
 	ON_EN_KILLFOCUS(IDC_GAUSS_SUP, &CReadModeDlg::OnKillfocusGaussSup)
+	ON_EN_KILLFOCUS(IDC_GAUSS_INF2, &CReadModeDlg::OnKillfocusGaussInf2)
+	ON_EN_KILLFOCUS(IDC_GAUSS_SUP2, &CReadModeDlg::OnKillfocusGaussSup2)
 
 	ON_BN_CLICKED(IDC_USECURV11, &CReadModeDlg::OnBnClickedUsecurv11)
 	ON_BN_CLICKED(IDC_USECURV12, &CReadModeDlg::OnBnClickedUsecurv12)
@@ -120,6 +124,17 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_USECURV16, &CReadModeDlg::OnBnClickedUsecurv16)
 	ON_BN_CLICKED(IDC_USECURV17, &CReadModeDlg::OnBnClickedUsecurv17)
 	ON_BN_CLICKED(IDC_USECURV18, &CReadModeDlg::OnBnClickedUsecurv18)
+	ON_COMMAND(ID_POLYGONMODE_FILL, &CReadModeDlg::OnPolygonmodeFill1)
+	ON_COMMAND(ID_POLYGONMODE_LINE, &CReadModeDlg::OnPolygonmodeLine1)
+	ON_COMMAND(ID_POLYGONMODE_POINT, &CReadModeDlg::OnPolygonmodePoint1)
+	ON_COMMAND(ID_POLYGONMODE_FILLE, &CReadModeDlg::OnPolygonmodeFill2)
+	ON_COMMAND(ID_POLYGONMODE_LINE32789, &CReadModeDlg::OnPolygonmodeLine2)
+	ON_COMMAND(ID_POLYGONMODE_POINT32788, &CReadModeDlg::OnPolygonmodePoint2)
+
+	ON_COMMAND(ID_MEANCURVATURE_ALGO, &CReadModeDlg::OnMeancurvatureWithEdgeCurv)
+	ON_COMMAND(ID_MEANCURVATURE_ALGO2, &CReadModeDlg::OnMeancurvatureWithoutEdgeCurv)
+	ON_COMMAND(ID_MEANCURVATURE_ALGO1, &CReadModeDlg::OnMeancurvatureWithEdgeCurv2)
+	ON_COMMAND(ID_MEANCURVATURE_ALGO3, &CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2)
 END_MESSAGE_MAP()
 
 
@@ -164,11 +179,17 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_infobox_handle=GetDlgItem(IDC_INFO);
 	m_gauss_inf_handle=GetDlgItem(IDC_GAUSS_INF);
 	m_gauss_sup_handle=GetDlgItem(IDC_GAUSS_SUP);
+	m_gauss_inf_handle2=GetDlgItem(IDC_GAUSS_INF2);
+	m_gauss_sup_handle2=GetDlgItem(IDC_GAUSS_SUP2);
 	::SetFocus(::GetActiveWindow());
 	gauss_inferior=10;
 	gauss_superior=60;
+	gauss_inferior2=10;
+	gauss_superior2=60;
 	m_gauss_inf_handle->SetWindowTextW(_T("10"));
 	m_gauss_sup_handle->SetWindowTextW(_T("60"));
+	m_gauss_inf_handle2->SetWindowTextW(_T("10"));
+	m_gauss_sup_handle2->SetWindowTextW(_T("60"));
 	curv1=MEAN;
 	curv2=MEAN;
 	CRect rect;
@@ -254,18 +275,7 @@ void CReadModeDlg::OnBnClickedReadm()
 	if(pDlg->DoModal()!=IDOK)
 		return;
 	
-	
-	/*CRect rect;
-	protein1->wnd->GetClientRect(rect);*/
-	//protein1->wnd->InvalidateRect(NULL);	
-	//protein1->wnd->ValidateRect(NULL);*/*/
-//	if(protein1!=NULL) protein1->;
-	//protein1=new ProteinFrame();
-	//if(protein1->Kill()){
-	//delete protein1;
-	//protein1=new ProteinFrame();
-	//protein1->wnd=CWnd::GetDlgItem(IDC_SHOW1);
-	//protein1->LoadFrame(protein1->wnd);
+
 	if(protein1->m_rof==NULL){
 		protein1->LoadProtein(CW2A(pDlg->GetPathName()));	
 		protein1->Draw();
@@ -700,27 +710,6 @@ void CReadModeDlg::OnEnChangeInfo()
 }
 
 
-//void CReadModeDlg::OnEnChangeGaussInf()
-//{
-//	// TODO:  If this is a RICHEDIT control, the control will not
-//	// send this notification unless you override the CDialogEx::OnInitDialog()
-//	// function and call CRichEditCtrl().SetEventMask()
-//	// with the ENM_CHANGE flag ORed into the mask.
-//	float val=m_gauss_inf_handle->getva
-//	// TODO:  Add your control notification handler code here
-//}
-
-
-//void CReadModeDlg::OnEnChangeGaussSup()
-//{
-//	// TODO:  If this is a RICHEDIT control, the control will not
-//	// send this notification unless you override the CDialogEx::OnInitDialog()
-//	// function and call CRichEditCtrl().SetEventMask()
-//	// with the ENM_CHANGE flag ORed into the mask.
-
-//	// TODO:  Add your control notification handler code here
-//}
-
 
 void CReadModeDlg::OnKillfocusGaussInf()
 {
@@ -737,7 +726,6 @@ void CReadModeDlg::OnKillfocusGaussInf()
 		m_gauss_inf_handle->SetWindowTextW(tmp);
 	}
 	if(protein1->m_rof != NULL) protein1->m_rof->gauss_inf = gauss_inferior;
-	if(protein2->m_rof != NULL) protein2->m_rof->gauss_inf = gauss_inferior;
 	::SetFocus(::GetActiveWindow());
 }
 
@@ -757,10 +745,46 @@ void CReadModeDlg::OnKillfocusGaussSup()
 		m_gauss_sup_handle->SetWindowTextW(tmp);
 	}
 	if(protein1->m_rof != NULL) protein1->m_rof->gauss_sup = gauss_superior;
-	if(protein2->m_rof != NULL) protein2->m_rof->gauss_sup = gauss_superior;
 	::SetFocus(::GetActiveWindow());
 }
 
+void CReadModeDlg::OnKillfocusGaussInf2()
+{
+	// TODO: Add your control notification handler code here
+	CString inf;
+	m_gauss_inf_handle2->GetWindowTextW(inf);
+	if(::StrToIntW(inf)<gauss_superior2)
+		gauss_inferior2 = ::StrToIntW(inf);
+	else{
+		m_infobox_handle->SetWindowTextW(_T("This value is not inferior to the sup value"));	
+		gauss_inferior2 = gauss_superior2 - 1; 
+		CString tmp;
+		tmp.Format(_T("%d"), gauss_inferior2);	
+		m_gauss_inf_handle2->SetWindowTextW(tmp);
+	}
+	if(protein2->m_rof != NULL) protein2->m_rof->gauss_inf = gauss_inferior2;
+	::SetFocus(::GetActiveWindow());
+}
+
+
+void CReadModeDlg::OnKillfocusGaussSup2()
+{
+		// TODO: Add your control notification handler code here
+	CString sup;
+	m_gauss_sup_handle2->GetWindowTextW(sup);
+	if(gauss_inferior2<::StrToIntW(sup))
+		gauss_superior2= ::StrToIntW(sup);
+	else{
+		m_infobox_handle->SetWindowTextW(_T("This value is not superior to the inf value"));	
+		gauss_superior2 =gauss_inferior2 +1;
+		CString tmp;
+		tmp.Format(_T("%d"), gauss_superior2);	
+		m_gauss_sup_handle2->SetWindowTextW(tmp);
+	}
+	if(protein2->m_rof != NULL) protein2->m_rof->gauss_sup = gauss_superior2;
+	::SetFocus(::GetActiveWindow());
+
+}
 
 
 void CReadModeDlg::OnBnClickedUsecurv11() //use mean 1
@@ -860,4 +884,81 @@ void CReadModeDlg::PostNcDestroy()
 	while(protein1->kill_thread==true || protein2->kill_thread==true){};
 
 	CDialogEx::PostNcDestroy();
+}
+
+
+void CReadModeDlg::OnPolygonmodeFill1()
+{
+	// TODO: Add your command handler code here
+	protein1->polygon_mode=GL_FILL;
+}
+
+void CReadModeDlg::OnPolygonmodeLine1()
+{
+	// TODO: Add your command handler code here
+	protein1->polygon_mode=GL_LINE;
+}
+
+void CReadModeDlg::OnPolygonmodePoint1()
+{
+	// TODO: Add your command handler code here
+	protein1->polygon_mode=GL_POINT;
+}
+
+void CReadModeDlg::OnPolygonmodeFill2()
+{
+	// TODO: Add your command handler code here
+	protein2->polygon_mode=GL_FILL;
+}
+
+void CReadModeDlg::OnPolygonmodeLine2()
+{
+	// TODO: Add your command handler code here
+	protein2->polygon_mode=GL_LINE;
+}
+
+void CReadModeDlg::OnPolygonmodePoint2()
+{
+	// TODO: Add your command handler code here
+	protein2->polygon_mode=GL_POINT;
+}
+
+
+
+void CReadModeDlg::OnMeancurvatureWithEdgeCurv()
+{
+	// TODO: Add your command handler code here
+	if(protein1->m_rof!=NULL){
+		protein1->m_rof->use_ridgeorvalley=true;
+		protein1->m_rof->EstimatekGkM();
+	}
+}
+
+void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv()
+{
+	// TODO: Add your command handler code here
+	if(protein1->m_rof!=NULL){
+		protein1->m_rof->use_ridgeorvalley=false;
+		protein1->m_rof->EstimatekGkM();
+	}
+}
+
+
+void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
+{
+	// TODO: Add your command handler code here
+	if(protein2->m_rof!=NULL){
+		protein2->m_rof->use_ridgeorvalley=true;
+		protein2->m_rof->EstimatekGkM();
+	}
+}
+
+
+void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
+{
+	// TODO: Add your command handler code here
+	if(protein2->m_rof!=NULL){
+		protein2->m_rof->use_ridgeorvalley=false;
+		protein2->m_rof->EstimatekGkM();
+	}
 }
