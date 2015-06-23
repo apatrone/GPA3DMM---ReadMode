@@ -134,4 +134,7 @@ public:
 	afx_msg void OnMeancurvatureWithoutEdgeCurv();
 	afx_msg void OnMeancurvatureWithEdgeCurv2();
 	afx_msg void OnMeancurvatureWithoutEdgeCurv2();
+	afx_msg void OnEnChangeGaussInf2();
+	afx_msg void OnProtein1Resetview();
+	afx_msg void OnProtein2Resetview();
 };

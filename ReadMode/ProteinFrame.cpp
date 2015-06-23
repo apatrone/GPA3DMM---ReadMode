@@ -75,7 +75,7 @@ void* MyThread(ProteinFrame *p)
 			::glPushMatrix();
 			::glTranslatef(p->m_x,p->m_y,p->m_z);
 			if(p->m_AutoRotation)
-				p->m_rot_y+=1;
+				p->m_rot_y+=p->speed/60;
 			glRotated(p->m_rot_z, 0.0f, 0.0f, 1.0f);
 			glRotated(p->m_rot_y, 0.0f, 1.0f, 0.0f);
 			glRotated(p->m_rot_x, 1.0f, 0.0f, 0.0f); 
@@ -376,25 +376,45 @@ void ProteinFrame::KeyInput(int wParam, int nTimes){
 	const double z=0.01;const double y=0.9;
 	currentTime=::GetTickCount();
 	deltaTime = float(currentTime - previousTime)/1000;//for seconde /1000 
-	if(deltaTime>0.5) deltaTime=0.1; //if it's been too long, don't do a 180 rotation!
+	if(deltaTime>0.1) deltaTime=0.1; //if it's been too long, don't do a 180 rotation!
 	switch(wParam){
-		case (int)'W': case (int)'Z':  case VK_UP: 
+		case (int)'W': case (int)'Z': 
+			m_y+=deltaTime*speed/10;  //more fluid but only object on the left moves, wtf
+			//m_rot_x+=y+nTimes/10000000000;
+			//m_z+=deltaTime*nTimes/1000000000;
+			//m_z+=z+nTimes/10000000000;			
+			break;
+		case (int)'Q': case (int)'A': 
+			m_x-=deltaTime*speed/10; 
+			//m_rot_y-= y+nTimes/10000000000;
+			//previousTime = currentTime;
+			break;
+		case (int)'S': 
+			m_y-=deltaTime*speed/10;
+			//m_rot_x-=y+nTimes/10000000000;
+			//m_z-= z+nTimes/10000000000;			
+			break;
+		case (int)'D':  
+			m_x+=deltaTime*speed/10;
+			//m_rot_y+= y+nTimes/10000000000;
+			break;
+		case VK_UP: 
 			m_rot_x+=deltaTime*speed;  //more fluid but only object on the left moves, wtf
 			//m_rot_x+=y+nTimes/10000000000;
 			//m_z+=deltaTime*nTimes/1000000000;
 			//m_z+=z+nTimes/10000000000;			
 			break;
-		case (int)'Q': case (int)'A': case VK_LEFT:
+		case VK_LEFT:
 			m_rot_y-=deltaTime*speed;
 			//m_rot_y-= y+nTimes/10000000000;
 			//previousTime = currentTime;
 			break;
-		case (int)'S': case VK_DOWN: 
+		case VK_DOWN: 
 			m_rot_x-=deltaTime*speed;
 			//m_rot_x-=y+nTimes/10000000000;
 			//m_z-= z+nTimes/10000000000;			
 			break;
-		case (int)'D':  case VK_RIGHT:
+		case VK_RIGHT:
 			m_rot_y+=deltaTime*speed;
 			//m_rot_y+= y+nTimes/10000000000;
 			break;
@@ -403,23 +423,30 @@ void ProteinFrame::KeyInput(int wParam, int nTimes){
 }
 
 void ProteinFrame::Reset(void){
+	ResetView();
+	m_move=false;
+	m_read=false;
+
+	free(m_rof);
+	flag=false;
+	flag_threadCreated=false;
+	kill_thread=false;
+	//m_init=false;
+}
+void ProteinFrame::ResetView(void){
 	m_x=0;
 	m_y=-0.5;
 	m_z=-10.0;
-	m_move=false;
-	m_read=false;
 
 	m_rot_x=0;
 	m_rot_y=0;
 	m_rot_z=0;
 	m_rotation=0;
-	free(m_rof);
-	flag=false;
+
 	m_AutoRotation=false;
-	flag_threadCreated=false;
-	kill_thread=false;
+	polygon_mode=GL_FILL;
 	m_LDown=false;
-	//m_init=false;
+
 }
 
 bool ProteinFrame::Kill(void)

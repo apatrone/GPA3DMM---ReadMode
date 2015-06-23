@@ -135,6 +135,9 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_COMMAND(ID_MEANCURVATURE_ALGO2, &CReadModeDlg::OnMeancurvatureWithoutEdgeCurv)
 	ON_COMMAND(ID_MEANCURVATURE_ALGO1, &CReadModeDlg::OnMeancurvatureWithEdgeCurv2)
 	ON_COMMAND(ID_MEANCURVATURE_ALGO3, &CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2)
+	//ON_EN_CHANGE(IDC_GAUSS_INF2, &CReadModeDlg::OnEnChangeGaussInf2)
+	ON_COMMAND(ID_PROTEIN1_RESETVIEW, &CReadModeDlg::OnProtein1Resetview)
+	ON_COMMAND(ID_PROTEIN2_RESETVIEW, &CReadModeDlg::OnProtein2Resetview)
 END_MESSAGE_MAP()
 
 
@@ -192,9 +195,9 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_gauss_sup_handle2->SetWindowTextW(_T("60"));
 	curv1=MEAN;
 	curv2=MEAN;
-	CRect rect;
-	protein1->wnd->GetClientRect(rect);
-//	trackball = new CTrackBall(rect.Width(), rect.Height(), protein1);
+//	CRect rect;
+//	protein1->wnd->GetClientRect(rect);
+////	trackball = new CTrackBall(rect.Width(), rect.Height(), protein1);
 	m_radio_button_curvature1.SetCheck(true);
 	m_radio_button_curvature2.SetCheck(true);
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -358,16 +361,15 @@ void CReadModeDlg::OnBnClickedRoatm()//Rotating model
 	// TODO: Add your control notification handler code here
 	if (protein1->m_rof==NULL &&protein2->m_rof==NULL)
 	{
-		//AfxMessageBox(_T("请先读取物体!"));
 		m_infobox_handle->SetWindowTextW(_T("Please load an object first")); //if no _T writes in chinese
 		return;
 	} 
-	if(protein1->m_rof!=NULL){
+	if(protein1->m_rof!=NULL && (m_move==1 || m_move==2)){
 		protein1->m_rotation=true;
 		protein1->m_AutoRotation=true;
 		protein1->m_move=false;
 	}
-	if(protein2->m_rof!=NULL){
+	if(protein2->m_rof!=NULL && (m_move==1 || m_move==3)){
 		protein2->m_rotation=true;
 		protein2->m_AutoRotation=true;
 		protein2->m_move=false;
@@ -378,12 +380,16 @@ void CReadModeDlg::OnBnClickedUpdate()//stop button
 {
 	//give a stop order
 	// TODO: Add your control notification handler code here
-	protein1->m_AutoRotation=false;
-	protein1->m_rotation=false;
-	protein1->m_move=false;
-	protein2->m_AutoRotation=false;
-	protein2->m_rotation=false;
-	protein2->m_move=false;
+	if(m_move==1 || m_move==2){
+		protein1->m_AutoRotation=false;
+		protein1->m_rotation=false;
+		protein1->m_move=false;
+	}
+	if(m_move==1 || m_move==3){
+		protein2->m_AutoRotation=false;
+		protein2->m_rotation=false;
+		protein2->m_move=false;
+	}
 	//this->UpdateData(true);
 	::SetFocus(::GetActiveWindow());
 }
@@ -495,11 +501,11 @@ BOOL CReadModeDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
 	// TODO: Add your message handler code here and/or call default
 	if(protein1->m_rof!=NULL&&(m_move==1 || m_move==2) ){
-		protein1->m_z+=zDelta/120;
+		protein1->m_z+=zDelta*m_SpeedSlider.GetPos()/1000;
 		//protein1->Draw();
 	}
 	if(protein2->m_rof!=NULL&&(m_move==1 || m_move==3)){
-		protein2->m_z+=zDelta/120;
+		protein2->m_z+=zDelta*m_SpeedSlider.GetPos()/1000;
 		//protein2->Draw();
 	}
 	::SetFocus(::GetActiveWindow());
@@ -616,7 +622,8 @@ BOOL CReadModeDlg::PreTranslateMessage(MSG* pMsg)
 	// TODO: Add your specialized code here and/or call the base class
 
 	if(pMsg->message==WM_KEYDOWN){
-		if(GetFocus()!= GetDlgItem(IDC_GAUSS_INF )&& GetFocus()!= GetDlgItem(IDC_GAUSS_SUP )){
+		if(GetFocus()!= GetDlgItem(IDC_GAUSS_INF )&& GetFocus()!= GetDlgItem(IDC_GAUSS_SUP )
+			&&  GetFocus()!= GetDlgItem(IDC_GAUSS_INF2 )&& GetFocus()!= GetDlgItem(IDC_GAUSS_SUP2 )){
 			if(protein1->m_rof!=NULL &&(m_move==1 || m_move==2) ){
 				protein1->KeyInput(pMsg->wParam, pMsg->lParam);
 			}
@@ -640,7 +647,7 @@ void CReadModeDlg::OnCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
 	if(protein1->m_rof !=NULL ){
 		protein1->speed=m_SpeedSlider.GetPos();
 	}
-	if(protein1->m_rof!=NULL){
+	if(protein2->m_rof!=NULL){
 		protein2->speed=m_SpeedSlider.GetPos();
 	}
 	*pResult = 0;
@@ -887,6 +894,8 @@ void CReadModeDlg::PostNcDestroy()
 }
 
 
+
+/////////////MENU///////////////////////////
 void CReadModeDlg::OnPolygonmodeFill1()
 {
 	// TODO: Add your command handler code here
@@ -923,8 +932,6 @@ void CReadModeDlg::OnPolygonmodePoint2()
 	protein2->polygon_mode=GL_POINT;
 }
 
-
-
 void CReadModeDlg::OnMeancurvatureWithEdgeCurv()
 {
 	// TODO: Add your command handler code here
@@ -943,7 +950,6 @@ void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv()
 	}
 }
 
-
 void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
 {
 	// TODO: Add your command handler code here
@@ -953,7 +959,6 @@ void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
 	}
 }
 
-
 void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
 {
 	// TODO: Add your command handler code here
@@ -961,4 +966,28 @@ void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
 		protein2->m_rof->use_ridgeorvalley=false;
 		protein2->m_rof->EstimatekGkM();
 	}
+}
+
+void CReadModeDlg::OnEnChangeGaussInf2()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialogEx::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
+}
+
+
+void CReadModeDlg::OnProtein1Resetview()
+{
+	// TODO: Add your command handler code here
+	protein1->ResetView();
+}
+
+
+void CReadModeDlg::OnProtein2Resetview()
+{
+	// TODO: Add your command handler code here
+	protein2->ResetView();
 }

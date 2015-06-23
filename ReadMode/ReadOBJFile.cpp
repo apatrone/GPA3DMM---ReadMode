@@ -659,9 +659,9 @@ void ReadOBJFile::Draw()
 	{	
 		if(use_curvature==SHAPEINDEX){
 			comp=m_vcalc[vertexIndices[i]].shape_index *100;
-			if(comp> 50)
+			if(comp> 0)
 				::glColor3f(0.5f,1.0f,0.0f);
-			else if(comp < -50)
+			else if(comp <0)
 				::glColor3f(0.5f,0.0f,0.5f);
 			else
 				::glColor3f(0.0f,1.0f,1.0f);
@@ -946,7 +946,7 @@ void ReadOBJFile::EstimatekGkM(void)
 		//calc kG
 		m_vcalc[i].kG= (2* M_PI - sum_angles)/(sum_area/3) ;  
 		//calc kM
-		m_vcalc[i].kM=   0.25 * sum_dihedral_angles/(4 * sum_area/3 ) ;
+		m_vcalc[i].kM=   0.25 * sum_dihedral_angles/(sum_area/3 ) ;
 		m_vcalc[i].shape_index = GetShapeIndex(m_vcalc[i].kG,m_vcalc[i].kM);
 	}
 int i=1;
@@ -1054,11 +1054,12 @@ std::vector<glm::vec3> ReadOBJFile::OrderEdges(std::vector<glm::vec3> edges){
 float ReadOBJFile::GetShapeIndex(float kG, float kM){
 		float k1 = kM + sqrt( ::abs(kM*kM - kG)); 
 		float k2 = kM - sqrt( ::abs(kM*kM - kG));
+		if(k1==k2)
+			return 0;
 		float shape_index= -2 / M_PI * ::atan( (k1+k2) / (k1 - k2));
 		return shape_index;
 
 }
-
 //--------------------------
 std::vector<GLEdge> ReadOBJFile::OrderGLEdges(std::vector<GLEdge> edges){
 	//std::vector<glm::vec3> edges;  //For test

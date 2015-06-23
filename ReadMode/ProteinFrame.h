@@ -22,6 +22,7 @@ public:
 	void LoadFrame(CWnd *pDlg);
 	void KeyInput(int wPAram, int nTimes);
 	void Reset(void);
+	void ResetView(void);
 	bool Kill();
 	// Generated message map functions
 public:
