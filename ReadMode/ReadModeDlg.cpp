@@ -143,6 +143,7 @@ END_MESSAGE_MAP()
 
 // CReadModeDlg message handlers
 
+
 BOOL CReadModeDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -252,7 +253,6 @@ HCURSOR CReadModeDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
-
 void CReadModeDlg::OnTimer(UINT_PTR nIDEvent)
 {	
 	
@@ -270,6 +270,9 @@ void CReadModeDlg::OnTimer(UINT_PTR nIDEvent)
 	//SetTimer(1,100,NULL);
 	CDialogEx::OnTimer(nIDEvent);
 }
+
+
+//---------LOAD BUTTONS--------------------//
 void CReadModeDlg::OnBnClickedReadm()
 {
 	// TODO: Add your control notification handler code here
@@ -304,8 +307,6 @@ void CReadModeDlg::OnBnClickedReadm()
 	//SetTimer(1,100,NULL);
 	::SetFocus(::GetActiveWindow());
 }
-
-
 void CReadModeDlg::OnBnClickedReadm2()
 {
 	CFileDialog *pDlg=new CFileDialog(true);
@@ -339,7 +340,7 @@ void CReadModeDlg::OnBnClickedReadm2()
 	::SetFocus(::GetActiveWindow());
 }
 
-
+//----------3 Buttons--------------------------//
 void CReadModeDlg::OnBnClickedMovem()   //mobility model (???)
 {
 	// TODO: Add your control notification handler code here
@@ -393,6 +394,7 @@ void CReadModeDlg::OnBnClickedUpdate()//stop button
 	//this->UpdateData(true);
 	::SetFocus(::GetActiveWindow());
 }
+//----------MOUSE--------------------------//
 void CReadModeDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: Add your message handler code here and/or call default
@@ -511,6 +513,7 @@ BOOL CReadModeDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	::SetFocus(::GetActiveWindow());
 	return CDialogEx::OnMouseWheel(nFlags, zDelta, pt);
 }
+//--------------------------------------------//
 void CReadModeDlg::OnRotation()
 {
 	// TODO: Add your command handler code here
@@ -525,9 +528,23 @@ void CReadModeDlg::OnRotation()
 	protein1->m_rotation=false;
 	::SetFocus(::GetActiveWindow());
 }
+HBRUSH CReadModeDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
 
+	// TODO:  Change any attributes of the DC here
+	UINT id = pWnd->GetDlgCtrlID();
 
-
+	if (id == IDC_INFO)
+		pDC->SetTextColor(RGB(255,0,0));
+	// TODO:  Return a different brush if the default is not desired
+	return hbr;
+}
+void CReadModeDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: Add your message handler code here and/or call default
+	CDialogEx::OnChar(nChar, nRepCnt, nFlags);
+}
 void CAboutDlg::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 {
 	CDialogEx::OnMenuSelect(nItemID, nFlags, hSysMenu);
@@ -546,7 +563,25 @@ void CAboutDlg::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 	}
 	::SetFocus(::GetActiveWindow());
 }
+void CReadModeDlg::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: Add your message handler code here and/or call default
 
+	CDialogEx::OnKeyUp(nChar, nRepCnt, nFlags);
+} 
+void CReadModeDlg::OnEnChangeInfo()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialogEx::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
+} //not used //not used
+void CReadModeDlg::OnStnClickedFrame1()
+{
+// TODO: Add your control notification handler code here
+}
 void CReadModeDlg::OnBnClickedShow()
 {
 	//m_move=1;
@@ -559,10 +594,7 @@ void CReadModeDlg::OnBnClickedShow2()
 	//m_move=2;
 	::SetFocus(::GetActiveWindow());
 }
-
-
-
-
+//---------MOVE COMBO + SPEED------------------------//
 void CReadModeDlg::OnCbnSelchangeCombo1()
 {
 	// TODO: Add your control notification handler code here
@@ -585,38 +617,20 @@ void CReadModeDlg::OnCbnSelchangeCombo1()
 	//Set focus back on main window
 	::SetFocus(::GetActiveWindow());
 }
-
-
-HBRUSH CReadModeDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+void CReadModeDlg::OnCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
-
-	// TODO:  Change any attributes of the DC here
-	UINT id = pWnd->GetDlgCtrlID();
-
-	if (id == IDC_INFO)
-		pDC->SetTextColor(RGB(255,0,0));
-	// TODO:  Return a different brush if the default is not desired
-	return hbr;
+	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	if(protein1->m_rof !=NULL ){
+		protein1->speed=m_SpeedSlider.GetPos();
+	}
+	if(protein2->m_rof!=NULL){
+		protein2->speed=m_SpeedSlider.GetPos();
+	}
+	*pResult = 0;
+	::SetFocus(::GetActiveWindow());
 }
-
-
-void CReadModeDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-	// TODO: Add your message handler code here and/or call default
-	printf("yo\n");
-	CDialogEx::OnChar(nChar, nRepCnt, nFlags);
-}
-
-
-void CReadModeDlg::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-	// TODO: Add your message handler code here and/or call default
-
-	CDialogEx::OnKeyUp(nChar, nRepCnt, nFlags);
-}
-
-
+//--------KEY INPUT---------------------------//
 BOOL CReadModeDlg::PreTranslateMessage(MSG* pMsg)
 {
 	// TODO: Add your specialized code here and/or call the base class
@@ -638,28 +652,7 @@ BOOL CReadModeDlg::PreTranslateMessage(MSG* pMsg)
 }
 
 
-
-
-void CReadModeDlg::OnCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
-	// TODO: Add your control notification handler code here
-	if(protein1->m_rof !=NULL ){
-		protein1->speed=m_SpeedSlider.GetPos();
-	}
-	if(protein2->m_rof!=NULL){
-		protein2->speed=m_SpeedSlider.GetPos();
-	}
-	*pResult = 0;
-	::SetFocus(::GetActiveWindow());
-}
-
-
-void CReadModeDlg::OnStnClickedFrame1()
-{
-	// TODO: Add your control notification handler code here
-}
-
+//--------ESTIMATIONS SELECTION-------------//
 
 void CReadModeDlg::OnBnClickedCheck1()
 {
@@ -682,8 +675,6 @@ void CReadModeDlg::OnBnClickedCheck1()
 	}
 
 }
-
-
 void CReadModeDlg::OnBnClickedCheck2()
 {
 	// TODO: Add your control notification handler code here
@@ -704,20 +695,6 @@ void CReadModeDlg::OnBnClickedCheck2()
 			protein2->m_useNE=false;
 	}
 }
-
-
-void CReadModeDlg::OnEnChangeInfo()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CDialogEx::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-}
-
-
-
 void CReadModeDlg::OnKillfocusGaussInf()
 {
 	// TODO: Add your control notification handler code here
@@ -735,8 +712,6 @@ void CReadModeDlg::OnKillfocusGaussInf()
 	if(protein1->m_rof != NULL) protein1->m_rof->gauss_inf = gauss_inferior;
 	::SetFocus(::GetActiveWindow());
 }
-
-
 void CReadModeDlg::OnKillfocusGaussSup()
 {
 	// TODO: Add your control notification handler code here
@@ -754,7 +729,6 @@ void CReadModeDlg::OnKillfocusGaussSup()
 	if(protein1->m_rof != NULL) protein1->m_rof->gauss_sup = gauss_superior;
 	::SetFocus(::GetActiveWindow());
 }
-
 void CReadModeDlg::OnKillfocusGaussInf2()
 {
 	// TODO: Add your control notification handler code here
@@ -772,8 +746,6 @@ void CReadModeDlg::OnKillfocusGaussInf2()
 	if(protein2->m_rof != NULL) protein2->m_rof->gauss_inf = gauss_inferior2;
 	::SetFocus(::GetActiveWindow());
 }
-
-
 void CReadModeDlg::OnKillfocusGaussSup2()
 {
 		// TODO: Add your control notification handler code here
@@ -792,8 +764,6 @@ void CReadModeDlg::OnKillfocusGaussSup2()
 	::SetFocus(::GetActiveWindow());
 
 }
-
-
 void CReadModeDlg::OnBnClickedUsecurv11() //use mean 1
 {
 	// TODO: Add your control notification handler code here
@@ -803,8 +773,6 @@ void CReadModeDlg::OnBnClickedUsecurv11() //use mean 1
 	// TODO: Add your control notification handler code here
 	curv1=MEAN;
 }
-
-
 void CReadModeDlg::OnBnClickedUsecurv12() //use gauss 1
 {
 	// TODO: Add your control notification handler code here
@@ -814,8 +782,6 @@ void CReadModeDlg::OnBnClickedUsecurv12() //use gauss 1
 	// TODO: Add your command handler code here
 	curv1=GAUSS;
 }
-
-
 void CReadModeDlg::OnBnClickedUsecurv13()  //use shape index 1
 {
 	// TODO: Add your control notification handler code here
@@ -826,8 +792,6 @@ void CReadModeDlg::OnBnClickedUsecurv13()  //use shape index 1
 	// TODO: Add your command handler code here
 	curv1=SHAPEINDEX;
 }
-
-
 void CReadModeDlg::OnBnClickedUsecurv14() //use none 1
 {
 	// TODO: Add your control notification handler code here
@@ -838,8 +802,6 @@ void CReadModeDlg::OnBnClickedUsecurv14() //use none 1
 	// TODO: Add your command handler code here
 	curv1=NONE;
 }
-
-
 void CReadModeDlg::OnBnClickedUsecurv15() //use mean 2
 {
 	// TODO: Add your control notification handler code here
@@ -848,8 +810,6 @@ void CReadModeDlg::OnBnClickedUsecurv15() //use mean 2
 	}
 	curv2=MEAN;
 }
-
-
 void CReadModeDlg::OnBnClickedUsecurv16() //use gauss 2
 {
 	// TODO: Add your control notification handler code here
@@ -859,8 +819,6 @@ void CReadModeDlg::OnBnClickedUsecurv16() //use gauss 2
 	}
 	curv2=GAUSS;
 }
-
-
 void CReadModeDlg::OnBnClickedUsecurv17() //use shape index 2
 {
 	// TODO: Add your control notification handler code here
@@ -869,8 +827,6 @@ void CReadModeDlg::OnBnClickedUsecurv17() //use shape index 2
 	}
 	curv2=SHAPEINDEX;
 }
-
-
 void CReadModeDlg::OnBnClickedUsecurv18() //use none 2
 {
 	// TODO: Add your control notification handler code here
@@ -880,7 +836,7 @@ void CReadModeDlg::OnBnClickedUsecurv18() //use none 2
 	curv2=NONE;
 }
 
-
+//-----ON DESTRUCT-------------------//
 void CReadModeDlg::PostNcDestroy()
 {
 	// TODO: Add your specialized code here and/or call the base class
@@ -894,44 +850,37 @@ void CReadModeDlg::PostNcDestroy()
 }
 
 
-
-/////////////MENU///////////////////////////
+//---------------MENU----------------//
 void CReadModeDlg::OnPolygonmodeFill1()
 {
 	// TODO: Add your command handler code here
 	protein1->polygon_mode=GL_FILL;
 }
-
 void CReadModeDlg::OnPolygonmodeLine1()
 {
 	// TODO: Add your command handler code here
 	protein1->polygon_mode=GL_LINE;
 }
-
 void CReadModeDlg::OnPolygonmodePoint1()
 {
 	// TODO: Add your command handler code here
 	protein1->polygon_mode=GL_POINT;
 }
-
 void CReadModeDlg::OnPolygonmodeFill2()
 {
 	// TODO: Add your command handler code here
 	protein2->polygon_mode=GL_FILL;
 }
-
 void CReadModeDlg::OnPolygonmodeLine2()
 {
 	// TODO: Add your command handler code here
 	protein2->polygon_mode=GL_LINE;
 }
-
 void CReadModeDlg::OnPolygonmodePoint2()
 {
 	// TODO: Add your command handler code here
 	protein2->polygon_mode=GL_POINT;
 }
-
 void CReadModeDlg::OnMeancurvatureWithEdgeCurv()
 {
 	// TODO: Add your command handler code here
@@ -940,7 +889,6 @@ void CReadModeDlg::OnMeancurvatureWithEdgeCurv()
 		protein1->m_rof->EstimatekGkM();
 	}
 }
-
 void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv()
 {
 	// TODO: Add your command handler code here
@@ -949,7 +897,6 @@ void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv()
 		protein1->m_rof->EstimatekGkM();
 	}
 }
-
 void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
 {
 	// TODO: Add your command handler code here
@@ -958,7 +905,6 @@ void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
 		protein2->m_rof->EstimatekGkM();
 	}
 }
-
 void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
 {
 	// TODO: Add your command handler code here
@@ -967,27 +913,16 @@ void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
 		protein2->m_rof->EstimatekGkM();
 	}
 }
-
-void CReadModeDlg::OnEnChangeGaussInf2()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CDialogEx::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-}
-
-
 void CReadModeDlg::OnProtein1Resetview()
 {
 	// TODO: Add your command handler code here
 	protein1->ResetView();
 }
-
-
 void CReadModeDlg::OnProtein2Resetview()
 {
 	// TODO: Add your command handler code here
 	protein2->ResetView();
 }
+
+
+

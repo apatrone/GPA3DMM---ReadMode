@@ -79,8 +79,9 @@ public:
 	void GetMtlInfo();
 	void EstimatekGkM(void);
 	bool VertexEqual(GLVertex v1, GLVertex v2);
-	float GetAngle(glm::vec3 v1, glm::vec3 v2);
+	float GetAngle(glm::vec3 v1, glm::vec3 v2,  bool direction=true);
 	float GetArea(glm::vec3 v1, glm::vec3 v2);
+	float GetMixedArea(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3);
 	glm::vec3 GetCrossProduct(glm::vec3 v1,glm::vec3 v2);
 	bool ReadOBJFile::Collinear(glm::vec3 v1,glm::vec3 v2);
 	char  m_FileName[256];

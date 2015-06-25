@@ -1,14 +1,12 @@
 TODO:
 
 click on frame=activates it for mousewheel, etc.
-checkbox for moving both
 checkbox for align one view to the other
 Vérifier que c'est bien du .obj
 
 attention aux accès concurrents dans ReadModeDlg!! toutes les modifs sur m_z, etc ne devraient pas se faire là à cause du thread
 gérer la rotation en tenant compte des fps
 
-nettoyer les variables avant de reloader un objet sur la meme frame
 
 ça serait mieux que wasd controle la camera et la souris controle la position de l'objet
 sinon faire wasd pour objet et fleches pour camera?
