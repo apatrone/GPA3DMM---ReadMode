@@ -19,6 +19,12 @@ typedef struct  Vertex        //保存点信息
 	float kG;  //discrete gaussian curvature
 	float kM;  //discrete mean curvature
 	float shape_index;
+	float kmin;
+	float kmax;
+	float SGF;
+	float area;
+	//std::vector<GLEdge> edges;
+	
 	
 	//std::vector<Vector3> normal;
 } GLVertex ;
@@ -36,11 +42,12 @@ typedef  struct Texture         //保存贴图信息
 	GLfloat  z;
 	int nTextureIndex;
 }GLTexture;
+typedef struct Edge{  //Relative to a vertex v
+	glm::vec3 e;   //edge, equal to v2 - v
+	glm::vec3 p;  //other vertex of the edge, v2
+	GLVertex v;
+}GLEdge; 
 
-typedef struct Edge{
-	glm::vec3 e;
-	glm::vec3 p;
-}GLEdge;
 
 typedef  struct Face            //保存面信息
 {
@@ -62,6 +69,7 @@ typedef  struct Mtl//保存材质信息
 typedef  struct Edges{
 	glm::vec3 e1;
 	glm::vec3 e2;
+
 }OrderedEdges;
 class ReadOBJFile
 {
@@ -74,10 +82,11 @@ public:
 	bool ReadLine(FILE *fp,char *str);
 	std::vector<glm::vec3> OrderEdges(std::vector<glm::vec3> edges);
 	std::vector<GLEdge> ReadOBJFile::OrderGLEdges(std::vector<GLEdge> edges); //----
-	float GetShapeIndex(float kG, float kM);
+	float GetShapeIndex( int i);
 	void GetInfo();
 	void GetMtlInfo();
 	void EstimatekGkM(void);
+	void EstimateSGF(void);
 	bool VertexEqual(GLVertex v1, GLVertex v2);
 	float GetAngle(glm::vec3 v1, glm::vec3 v2,  bool direction=true);
 	float GetArea(glm::vec3 v1, glm::vec3 v2);

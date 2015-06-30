@@ -286,7 +286,6 @@ bool ProteinFrame::Draw(void)
 	
 
 }
-
 void ProteinFrame::LoadFrame(CWnd *pDlg)
 {
 	
@@ -370,7 +369,6 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 	//::glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 	//::glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 }
-
 void ProteinFrame::KeyInput(int wParam, int nTimes){
 	
 	const double z=0.01;const double y=0.9;
@@ -421,7 +419,6 @@ void ProteinFrame::KeyInput(int wParam, int nTimes){
 	}
 	previousTime = currentTime;		
 }
-
 void ProteinFrame::Reset(void){
 	ResetView();
 	m_move=false;
@@ -448,7 +445,6 @@ void ProteinFrame::ResetView(void){
 	m_LDown=false;
 
 }
-
 bool ProteinFrame::Kill(void)
 {
 	kill_thread=true;

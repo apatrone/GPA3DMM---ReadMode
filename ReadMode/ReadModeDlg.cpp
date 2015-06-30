@@ -841,10 +841,9 @@ void CReadModeDlg::PostNcDestroy()
 {
 	// TODO: Add your specialized code here and/or call the base class
 	if(protein1->flag_threadCreated)
-		protein1->kill_thread=true;
+		protein1->Kill();
 	if(protein2->flag_threadCreated)
-		protein2->kill_thread=true;
-	while(protein1->kill_thread==true || protein2->kill_thread==true){};
+		protein2->Kill();
 
 	CDialogEx::PostNcDestroy();
 }

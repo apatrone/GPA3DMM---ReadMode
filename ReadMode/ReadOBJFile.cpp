@@ -25,12 +25,9 @@ ReadOBJFile::ReadOBJFile(bool useNE)
 	use_curvature=MEAN;
 	use_ridgeorvalley=true;
 }
-
-
 ReadOBJFile::~ReadOBJFile(void)
 {
 }
-
 void ReadOBJFile::GetInfo()
 {
 	FILE * fp;
@@ -384,13 +381,11 @@ void ReadOBJFile::GetInfo()
 
 		}
 		init=true;
-		EstimateNormals();
-		EstimatekGkM();
+
 		res=(vt==true)+2*(vn==true); 
 
 	
 }
-
 void ReadOBJFile::GetMtlInfo()
 {
 	FILE *fp;
@@ -629,6 +624,9 @@ bool ReadOBJFile::ReadFile(char *FileName)
 	fclose(fp);
 	this->GetInfo();
 	this->GetMtlInfo();
+	EstimateNormals();
+	EstimatekGkM();
+	EstimateSGF();
 }
 bool ReadOBJFile::ReadLine(FILE *fp,char *str)
 {
@@ -658,17 +656,36 @@ void ReadOBJFile::Draw()
 	for(int i=0; i<vertexIndices.size(); i++)
 	{	
 		if(use_curvature==SHAPEINDEX){
-			comp=m_vcalc[vertexIndices[i]].shape_index;
-			if(comp> 0)
-				::glColor3f(0.5f,1.0f,0.0f);
+			comp=m_vcalc[vertexIndices[i]].SGF;
+			/*if(comp> 0){
+				::glColor3f(comp,0.2f,0.2f);
+			}
 			else if(comp <0)
-				::glColor3f(0.5f,0.0f,0.5f);
+				::glColor3f(0.2f,::abs(comp),0.2f);
 			else
+				::glColor3f(0.0f,1.0f,1.0f);*/
+			if(comp<-0.875)
+				::glColor3f(0.0f,1.0f,0.0f);
+			else if(comp<-0.625)
+				::glColor3f(0.0f,1.0f,0.5f);
+			else if(comp<-0.375)
 				::glColor3f(0.0f,1.0f,1.0f);
+			else if(comp<-0.125)
+				::glColor3f(0.5f,1.0f,1.0f);
+			else if(comp<0.125)
+				::glColor3f(1.0f,1.0f,1.0f);
+			else if(comp<0.375)
+				::glColor3f(1.0f,1.0f,0.5f);
+			else if(comp<0.625)
+				::glColor3f(1.0f,1.0f,0.0f);
+			else if(comp<0.875)
+				::glColor3f(1.0f,0.5f,0.0f);
+			else
+				::glColor3f(1.0f,0.0f,0.0f);
 		}
 		else if(use_curvature!=NONE){
 			if(use_curvature==GAUSS)
-				comp=m_vcalc[vertexIndices[i]].kG * 100 ;
+				comp=m_vcalc[vertexIndices[i]].kG * 100;
 			else if(use_curvature==MEAN)
 				comp=m_vcalc[vertexIndices[i]].kM *100;
 				
@@ -699,15 +716,12 @@ void ReadOBJFile::Draw()
 	::glEnd();
 		
 }	
-
-
-
 int ReadOBJFile::EstimateNormals(void)
 {
 	//to make the program faster, it would be better to estimate normals in the same function that we estimate kMkG
 	
 normal_buffer = new std::vector<glm::vec3>[vertexIndices.size()]();
-#pragma omp parallel for
+//#pragma omp parallel for  //Fait planter sur certains obj.... (1HLB, etc)
 for( int i = 0; i < vertexIndices.size(); i += 3 )
 {
 	// get the three vertices that make the faces
@@ -753,7 +767,6 @@ for( int i = 0; i < vertexIndices.size(); i += 3 )
 
  return true;
 }
-
 void ReadOBJFile::EstimatekGkM(void)
 { 
 	
@@ -858,9 +871,9 @@ void ReadOBJFile::EstimatekGkM(void)
 			//if(Collinear(cross_edge/glm::length(cross_edge) , cross_next_edge/glm::length(cross_next_edge))==false){
 			if(use_ridgeorvalley){
 				coeff=glm::dot((nxt_edge.p - prev_edge.p ) , cross_edge/glm::length(cross_edge));
-				if(coeff<=-0.15)
+				if(coeff<=-0.02)
 					ridge_or_valley=1; //convex
-				else if(coeff>=0.15)
+				else if(coeff>=0.02)
 					ridge_or_valley=-1; //concave
 				else 
 					ridge_or_valley=0;//planar
@@ -868,7 +881,7 @@ void ReadOBJFile::EstimatekGkM(void)
 			//	}
 			//	else ridge_or_valley=0;
 				//*/
-			sum_dihedral_angles+= ridge_or_valley * GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(current_edge.e);
+			sum_dihedral_angles+= ridge_or_valley * GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge), false) * glm::length(current_edge.e);
 		
 		}
 		//angle for kG
@@ -883,9 +896,9 @@ void ReadOBJFile::EstimatekGkM(void)
 		if(use_ridgeorvalley){
 //		if(Collinear(cross_edge/glm::length(cross_edge) , cross_next_edge/glm::length(cross_next_edge))==false){
 			coeff=glm::dot((order_edges[0].p - current_edge.p ) , cross_edge/glm::length(cross_edge));
-			if(coeff<=-0.15)
+			if(coeff<=-0.02)
 				ridge_or_valley=1; //convex
-			else if(coeff>=0.15)
+			else if(coeff>=0.02)
 				ridge_or_valley=-1; //concave
 			else 
 				ridge_or_valley=0;//planar
@@ -893,7 +906,7 @@ void ReadOBJFile::EstimatekGkM(void)
 		//else ridge_or_valley=0;
 		}
 
-		sum_dihedral_angles+=ridge_or_valley*GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge)) * glm::length(nxt_edge.e);
+		sum_dihedral_angles+=ridge_or_valley*GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge), false) * glm::length(nxt_edge.e);
 		
 		cross_edge=glm::cross( nxt_edge.e,  order_edges[0].e);
 		cross_next_edge=glm::cross(order_edges[0].e, order_edges[1].e);
@@ -901,9 +914,9 @@ void ReadOBJFile::EstimatekGkM(void)
 		if(use_ridgeorvalley){
 			//if(Collinear(cross_edge/glm::length(cross_edge) , cross_next_edge/glm::length(cross_next_edge))==false){
 			coeff=glm::dot((order_edges[1].p - nxt_edge.p ) , cross_edge/glm::length(cross_edge));
-			if(coeff<=-0.15)
+			if(coeff<=-0.02)
 				ridge_or_valley=1; //convex
-			else if(coeff>=0.15)
+			else if(coeff>=0.02)
 				ridge_or_valley=-1; //concave
 			else 
 				ridge_or_valley=0;//planar
@@ -911,7 +924,7 @@ void ReadOBJFile::EstimatekGkM(void)
 		//else ridge_or_valley=0;
 		}
 
-		sum_dihedral_angles+=ridge_or_valley*GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge))* glm::length( order_edges[0].e);
+		sum_dihedral_angles+=ridge_or_valley*GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge), false)* glm::length( order_edges[0].e);
 		//-------------------------
 		/*for(int k=1; k<ordered_edges.size()-1; k++){ 
 
@@ -940,7 +953,9 @@ void ReadOBJFile::EstimatekGkM(void)
 		cross_next_edge=glm::cross(ordered_edges[0], ordered_edges[1]);
 		sum_dihedral_angles+=GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge))* glm::length( ordered_edges[0]);
 		*/
-		
+	/*	m_vcalc[i].edges.get_allocator().allocate(order_edges.size());
+		m_vcalc[i].edges=order_edges;*/
+
 		if(use_ridgeorvalley){
 			//calc kG
 			m_vcalc[i].kG= (2* M_PI - sum_angles)/(sum_area/3) ;  
@@ -951,13 +966,114 @@ void ReadOBJFile::EstimatekGkM(void)
 			//calc kG
 			m_vcalc[i].kG= (2* M_PI - sum_angles)/(sum_area) ;  
 			//calc kM
-			m_vcalc[i].kM=  sum_dihedral_angles/(4*sum_area) ;
+			m_vcalc[i].kM= sum_dihedral_angles/(4*sum_area) ;
 		}
-		m_vcalc[i].shape_index = GetShapeIndex(m_vcalc[i].kG,m_vcalc[i].kM);
+		if(sum_angles > 2 * M_PI) //in theory the sum of angles can not be greater then 2*M_PI
+			m_vcalc[i].kG= 0;
+		m_vcalc[i].shape_index = GetShapeIndex(i);
+		m_vcalc[i].area=sum_area;
 	}
 int i=1;
 }
+void ReadOBJFile::EstimateSGF(void){
+ //std::sort(s.begin(), s.end(), customLess);
+	#pragma omp parallel for schedule(static)
+	for(int i=0; i<size_m_v; i++) //for each vertex
+	{
+		int p=0; //for test
+		int r=0;//For test
+		float sum_angles=0; //for kG
+		float sum_area=0;//for kG and kM
+		float sum_dihedral_angles=0; //for kM
+		float variance_SI=0;
+		
+		//std::vector<glm::vec3> ordered_edges;
+		//----------------------
+		std::vector<GLEdge> order_edges;
+		#pragma omp parallel for schedule(guided)  //Crashes when alone
+		for(int j=0; j<vertexIndices.size(); j+=3) //for each faceof the mesh
+		{	
+			//if current vertex belongs to the current triangle/face
+			//if(vertexIndices[j]==i || etc. is the same?
+			if(VertexEqual(m_vcalc[vertexIndices[j]],m_vcalc[i]) ||  VertexEqual(m_vcalc[vertexIndices[j+1]],m_vcalc[i]) || VertexEqual(m_vcalc[vertexIndices[j+2]],m_vcalc[i]))
+			{
+				
+				glm::vec3 p1 = glm::vec3(m_vcalc[i].x, m_vcalc[i].y, m_vcalc[i].z);
+				glm::vec3 p2; 
+				glm::vec3 p3;
+				float angle;
+				float area;
+				//------
+				GLEdge e1;
+				GLEdge e2;
 
+				if( VertexEqual(m_vcalc[vertexIndices[j]],m_vcalc[i]))
+				{
+					p2 = glm::vec3(m_vcalc[vertexIndices[j+1]].x, m_vcalc[vertexIndices[j+1]].y, m_vcalc[vertexIndices[j+1]].z);
+					p3 =  glm::vec3(m_vcalc[vertexIndices[j+2]].x, m_vcalc[vertexIndices[j+2]].y, m_vcalc[vertexIndices[j+2]].z);
+					e1.v = m_vcalc[vertexIndices[j+1]];
+					e2.v= m_vcalc[vertexIndices[j+2]];
+				}
+				else if(VertexEqual(m_vcalc[vertexIndices[j+1]],m_vcalc[i]))
+				{
+					p2 = glm::vec3(m_vcalc[vertexIndices[j+0]].x, m_vcalc[vertexIndices[j+0]].y, m_vcalc[vertexIndices[j+0]].z);
+					p3 =  glm::vec3(m_vcalc[vertexIndices[j+2]].x, m_vcalc[vertexIndices[j+2]].y, m_vcalc[vertexIndices[j+2]].z);
+					e1.v = m_vcalc[vertexIndices[j+0]];
+					e2.v= m_vcalc[vertexIndices[j+2]];
+				}
+				else if(VertexEqual(m_vcalc[vertexIndices[j+2]],m_vcalc[i]))
+				{
+					p2 = glm::vec3(m_vcalc[vertexIndices[j+0]].x, m_vcalc[vertexIndices[j+0]].y, m_vcalc[vertexIndices[j+0]].z);
+					p3 = glm::vec3(m_vcalc[vertexIndices[j+1]].x, m_vcalc[vertexIndices[j+1]].y, m_vcalc[vertexIndices[j+1]].z);
+					e1.v = m_vcalc[vertexIndices[j+0]];
+					e2.v= m_vcalc[vertexIndices[j+1]];
+				}
+				
+				glm::vec3 v1 = p2 - p1;
+				glm::vec3 v2 = p3 - p1; 
+	
+				e1.e=v1;
+				e1.p=p2;
+				e2.e=v2;
+				e2.p=p3;
+				order_edges.push_back(e1);
+				order_edges.push_back(e2);
+
+			}
+
+		}
+
+	
+		glm::vec3 cross_edge;
+		glm::vec3 cross_next_edge;
+		
+		GLEdge prev_edge;
+		GLEdge current_edge;
+		GLEdge nxt_edge;
+		order_edges=OrderGLEdges(order_edges);
+		int ridge_or_valley=1;
+		float coeff; float coeff2;
+		float sum_shape_index=0;
+		float mean_SI;
+		float sum=0;
+		for(int k=0; k<order_edges.size(); k++){ 
+			current_edge=order_edges[k];
+			//area for kG and kM
+			sum+=0.5*current_edge.v.area*pow(current_edge.v.shape_index, 3); 
+			//sum_area+=current_edge.v.area; 
+			sum_shape_index+=pow(current_edge.v.shape_index, 3);
+
+
+		}
+		mean_SI= sum_shape_index/order_edges.size();
+		for(int k=0; k<order_edges.size(); k++){ 
+			variance_SI+=0.5* pow( order_edges[k].v.shape_index-mean_SI,2);
+		}
+		variance_SI=variance_SI/order_edges.size();
+		m_vcalc[i].SGF= sum+variance_SI;
+	
+	}
+}
 bool ReadOBJFile::VertexEqual(GLVertex v1, GLVertex v2)
 {
 	if(v1.x==v2.x && v1.y==v2.y &&v1.z==v2.z )
@@ -976,22 +1092,22 @@ float ReadOBJFile::GetAngle(glm::vec3 v1, glm::vec3 v2, bool direction){
 	else if(prod_sum < -1)
 		prod_sum = -1;
 	double c=acos( prod_sum );//(abs_v1*abs_v2)>0? ::acos( prod_sum / (abs_v1*abs_v2)): (M_PI/2); //if division by zero cos= 0
-	return c;
-	if(direction){   //don't want obtuse angles
-		if(c>M_PI/2 && c <= M_PI)
-			return M_PI - c;
-		else return c;
-	/*	if(c>M_PI && c <= ( 2*M_PI))
-			return 2*M_PI - c;
-		else if(c<0)
-			return 2* M_PI + c;
-		else return c; //always this
-		*/
-	}
+	//if(direction){   //don't want obtuse angles
+	//	/*if(c>M_PI/2 && c <= M_PI)
+	//		return M_PI - c;
+	//	else return c;*/
+	//	if(c>M_PI && c <= ( 2*M_PI))
+	//		return 2*M_PI - c;
+	//	else if(c<0)
+	//		return 2* M_PI + c;
+	//	else return c; //always this
+	//	
+	//}
+	//if(prod_sum<0)
+	//	return -c;
 	return c;
 
 }
-
 float ReadOBJFile::GetArea(glm::vec3 v1, glm::vec3 v2) 
 {
 	//glm::vec3 v1= glm::vec3(-3,1,-7); //for test 
@@ -1019,8 +1135,6 @@ float ReadOBJFile::GetMixedArea(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3){
 		}
 	return 0;
 } //not finished writing
-
-
 glm::vec3 ReadOBJFile::GetCrossProduct(glm::vec3 v1,glm::vec3 v2) //glm::cross....
 {
 
@@ -1084,23 +1198,23 @@ std::vector<glm::vec3> ReadOBJFile::OrderEdges(std::vector<glm::vec3> edges){
 	return edges;
 	
 }
-
-
-float ReadOBJFile::GetShapeIndex(float kG, float kM){
-		static int i=0;
+float ReadOBJFile::GetShapeIndex( int i){
 		//float tmpkM=kM;
+		float kM= this->m_vcalc[i].kM;
+		float kG= this->m_vcalc[i].kG;
 		if(kM*kM - kG <0){
-			i++;
 			return 0;
 		}
 		float k1 = kM + sqrt( ::abs(kM*kM - kG)); 
 		float k2 = kM - sqrt( ::abs(kM*kM - kG));
+		this->m_vcalc[i].kmax=k1;
+		this->m_vcalc[i].kmin=k2;
 		if(k1==k2)
 			return 0;
-		float shape_index= -2 / M_PI * ::atan( (k1+k2) / (k1 - k2));
+		float shape_index= 2.0 / M_PI * ::atan( (k1+k2) / (k1 - k2));
 		return shape_index;
 }
-//--------------------------
+//--------------------------//
 std::vector<GLEdge> ReadOBJFile::OrderGLEdges(std::vector<GLEdge> edges){
 	//std::vector<glm::vec3> edges;  //For test
 	//glm::vec3 v1=glm::vec3(1);
@@ -1155,7 +1269,6 @@ std::vector<GLEdge> ReadOBJFile::OrderGLEdges(std::vector<GLEdge> edges){
 	return edges;
 	
 }
-
 bool ReadOBJFile::Collinear(glm::vec3 v1,glm::vec3 v2)
 {
 	float a, b ,c; //if collinear, a, b and c are equal, so a/b = 1 and b/c = 1
