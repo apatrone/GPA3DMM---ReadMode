@@ -114,9 +114,11 @@ public:
 	afx_msg void OnBnClickedUsecurv13();
 	afx_msg void OnBnClickedUsecurv14();
 	afx_msg void OnBnClickedUsecurv15();
-	afx_msg void OnBnClickedUsecurv16();
-	afx_msg void OnBnClickedUsecurv17();
-	afx_msg void OnBnClickedUsecurv18();
+	afx_msg void OnBnClickedUsecurv20();
+	afx_msg void OnBnClickedUsecurv21();
+	afx_msg void OnBnClickedUsecurv22();
+	afx_msg void OnBnClickedUsecurv23();
+	afx_msg void OnBnClickedUsecurv24();
 	virtual void PostNcDestroy();
 	CButton m_radio_button_curvature1;
 	CButton m_radio_button_curvature2;
@@ -137,4 +139,10 @@ public:
 	afx_msg void OnEnChangeGaussInf2();
 	afx_msg void OnProtein1Resetview();
 	afx_msg void OnProtein2Resetview();
+
+	
+	CListBox m_uselist1;
+	afx_msg void OnLbnSelchangeList1();
+	CListBox m_uselist2;
+	afx_msg void OnLbnSelchangeList2();
 };

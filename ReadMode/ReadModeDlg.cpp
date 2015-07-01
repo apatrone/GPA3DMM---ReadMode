@@ -78,9 +78,11 @@ void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
 	//DDX_Control(pDX, IDC_USE_MEAN, m_use_mean1);
 	//DDX_Control(pDX, IDC_USE_MEAN2, m_use_mean2);
 	DDX_Control(pDX, IDC_USECURV11, m_radio_button_curvature1);
-	DDX_Control(pDX, IDC_USECURV15, m_radio_button_curvature2);
+	DDX_Control(pDX, IDC_USECURV20, m_radio_button_curvature2);
 	//DDX_Control(pDX, IDC_GAUSS_INF2, gauss_inf2);
 	//DDX_Control(pDX, IDC_GAUSS_SUP2, gauss_sup2);
+	DDX_Control(pDX, IDC_LIST1, m_uselist1);
+	DDX_Control(pDX, IDC_LIST2, m_uselist2);
 }
 BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
@@ -121,9 +123,11 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_USECURV13, &CReadModeDlg::OnBnClickedUsecurv13)
 	ON_BN_CLICKED(IDC_USECURV14, &CReadModeDlg::OnBnClickedUsecurv14)
 	ON_BN_CLICKED(IDC_USECURV15, &CReadModeDlg::OnBnClickedUsecurv15)
-	ON_BN_CLICKED(IDC_USECURV16, &CReadModeDlg::OnBnClickedUsecurv16)
-	ON_BN_CLICKED(IDC_USECURV17, &CReadModeDlg::OnBnClickedUsecurv17)
-	ON_BN_CLICKED(IDC_USECURV18, &CReadModeDlg::OnBnClickedUsecurv18)
+	ON_BN_CLICKED(IDC_USECURV20, &CReadModeDlg::OnBnClickedUsecurv20)
+	ON_BN_CLICKED(IDC_USECURV21, &CReadModeDlg::OnBnClickedUsecurv21)
+	ON_BN_CLICKED(IDC_USECURV22, &CReadModeDlg::OnBnClickedUsecurv22)
+	ON_BN_CLICKED(IDC_USECURV23, &CReadModeDlg::OnBnClickedUsecurv23)
+	ON_BN_CLICKED(IDC_USECURV24, &CReadModeDlg::OnBnClickedUsecurv24)
 	ON_COMMAND(ID_POLYGONMODE_FILL, &CReadModeDlg::OnPolygonmodeFill1)
 	ON_COMMAND(ID_POLYGONMODE_LINE, &CReadModeDlg::OnPolygonmodeLine1)
 	ON_COMMAND(ID_POLYGONMODE_POINT, &CReadModeDlg::OnPolygonmodePoint1)
@@ -138,6 +142,10 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	//ON_EN_CHANGE(IDC_GAUSS_INF2, &CReadModeDlg::OnEnChangeGaussInf2)
 	ON_COMMAND(ID_PROTEIN1_RESETVIEW, &CReadModeDlg::OnProtein1Resetview)
 	ON_COMMAND(ID_PROTEIN2_RESETVIEW, &CReadModeDlg::OnProtein2Resetview)
+
+
+	ON_LBN_SELCHANGE(IDC_LIST1, &CReadModeDlg::OnLbnSelchangeList1)
+	ON_LBN_SELCHANGE(IDC_LIST2, &CReadModeDlg::OnLbnSelchangeList2)
 END_MESSAGE_MAP()
 
 
@@ -196,6 +204,18 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_gauss_sup_handle2->SetWindowTextW(_T("60"));
 	curv1=MEAN;
 	curv2=MEAN;
+	m_uselist1.AddString(L"Mean curvature");
+	m_uselist1.AddString(L"Gaussian curvature");
+	m_uselist1.AddString(L"Shape Index");
+	m_uselist1.AddString(L"Salient Geometric Features");
+	m_uselist1.AddString(L"None");
+	m_uselist1.SetCurSel(0);
+	m_uselist2.AddString(L"Mean curvature");
+	m_uselist2.AddString(L"Gaussian curvature");
+	m_uselist2.AddString(L"Shape Index");
+	m_uselist2.AddString(L"Salient Geometric Features");
+	m_uselist2.AddString(L"None");
+	m_uselist2.SetCurSel(0);
 //	CRect rect;
 //	protein1->wnd->GetClientRect(rect);
 ////	trackball = new CTrackBall(rect.Width(), rect.Height(), protein1);
@@ -802,7 +822,15 @@ void CReadModeDlg::OnBnClickedUsecurv14() //use none 1
 	// TODO: Add your command handler code here
 	curv1=NONE;
 }
-void CReadModeDlg::OnBnClickedUsecurv15() //use mean 2
+void CReadModeDlg::OnBnClickedUsecurv15()
+{
+	// TODO: Add your control notification handler code here
+	if(protein1->m_rof!=NULL){
+		protein1->m_rof->use_curvature=SGF;
+	}
+	curv1=SGF;
+}
+void CReadModeDlg::OnBnClickedUsecurv20() //use mean 2
 {
 	// TODO: Add your control notification handler code here
 	if(protein2->m_rof!=NULL){
@@ -810,7 +838,7 @@ void CReadModeDlg::OnBnClickedUsecurv15() //use mean 2
 	}
 	curv2=MEAN;
 }
-void CReadModeDlg::OnBnClickedUsecurv16() //use gauss 2
+void CReadModeDlg::OnBnClickedUsecurv21() //use gauss 2
 {
 	// TODO: Add your control notification handler code here
 	// TODO: Add your command handler code here
@@ -819,7 +847,7 @@ void CReadModeDlg::OnBnClickedUsecurv16() //use gauss 2
 	}
 	curv2=GAUSS;
 }
-void CReadModeDlg::OnBnClickedUsecurv17() //use shape index 2
+void CReadModeDlg::OnBnClickedUsecurv22() //use shape index 2
 {
 	// TODO: Add your control notification handler code here
 	if(protein2->m_rof!=NULL){
@@ -827,13 +855,78 @@ void CReadModeDlg::OnBnClickedUsecurv17() //use shape index 2
 	}
 	curv2=SHAPEINDEX;
 }
-void CReadModeDlg::OnBnClickedUsecurv18() //use none 2
+void CReadModeDlg::OnBnClickedUsecurv23() //use none 2
 {
 	// TODO: Add your control notification handler code here
 	if(protein2->m_rof!=NULL){
 		protein2->m_rof->use_curvature=NONE;
 	}
 	curv2=NONE;
+}
+void CReadModeDlg::OnBnClickedUsecurv24()
+{
+	// TODO: Add your control notification handler code here
+	if(protein2->m_rof!=NULL){
+		protein2->m_rof->use_curvature=SGF;
+	}
+	curv2=SGF;
+}
+
+void CReadModeDlg::OnLbnSelchangeList1()
+{
+	// TODO: Add your control notification handler code here
+	int choice=m_uselist1.GetCurSel();
+	Curvature curv;
+	switch(choice)
+	{
+		case 0:
+			curv=MEAN;
+			break;
+		case 1:
+			curv=GAUSS;
+			break;
+		case 2:
+			curv=SHAPEINDEX;
+			break;
+		case 3:
+			curv=SGF;
+			break;
+		case 4:
+			curv=NONE;
+			break;
+	}
+	if(protein1->m_rof!=NULL){
+		protein1->m_rof->use_curvature=curv;
+	}
+	curv1=curv;	
+}
+void CReadModeDlg::OnLbnSelchangeList2()
+{
+	// TODO: Add your control notification handler code here
+	int choice=m_uselist2.GetCurSel();
+	Curvature curv;
+	switch(choice)
+	{
+		case 0:
+			curv=MEAN;
+			break;
+		case 1:
+			curv=GAUSS;
+			break;
+		case 2:
+			curv=SHAPEINDEX;
+			break;
+		case 3:
+			curv=SGF;
+			break;
+		case 4:
+			curv=NONE;
+			break;
+	}
+	if(protein2->m_rof!=NULL){
+		protein2->m_rof->use_curvature=curv;
+	}
+	curv2=curv;	
 }
 
 //-----ON DESTRUCT-------------------//

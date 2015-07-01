@@ -7,7 +7,7 @@
 #include <cmath>
 //#include "vector3.h"
 
-typedef enum Curvature{MEAN, GAUSS, SHAPEINDEX, NONE};
+typedef enum Curvature{MEAN, GAUSS, SHAPEINDEX,SGF, NONE};
 
 typedef struct  Vertex        //保存点信息
 {
@@ -46,7 +46,6 @@ typedef  struct Texture         //保存贴图信息
 typedef struct Edge{  //Relative to a vertex v
 	glm::vec3 e;   //edge, equal to v2 - v
 	glm::vec3 p;  //other vertex of the edge, v2
-	GLVertex v;
 }GLEdge; 
 
 
@@ -82,7 +81,8 @@ public:
 	bool ReadFile(char * FileNmae);
 	bool ReadLine(FILE *fp,char *str);
 	std::vector<glm::vec3> OrderEdges(std::vector<glm::vec3> edges);
-	std::vector<GLEdge> ReadOBJFile::OrderGLEdges(std::vector<GLEdge> edges); //----
+	std::vector<GLEdge> OrderGLEdges(std::vector<GLEdge> edges); //----
+	std::vector<int>  ReadOBJFile::OrderCluster(std::vector<int> cluster);
 	float GetShapeIndex( int i);
 	void GetInfo();
 	void GetMtlInfo();

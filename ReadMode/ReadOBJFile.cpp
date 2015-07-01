@@ -689,8 +689,9 @@ void ReadOBJFile::Draw()
 				comp=m_vcalc[vertexIndices[i]].kG * 100;
 			else if(use_curvature==MEAN)
 				comp=m_vcalc[vertexIndices[i]].kM *100;
-				
-				
+			if(use_curvature==SGF)	
+				comp=m_vcalc[vertexIndices[i]].SGF *100;
+
 			if(comp>gauss_sup)  
 			{::glColor3f(0.5f,1.0f,0.0f); } //green
 			else if(comp<gauss_inf) 
@@ -800,6 +801,7 @@ void ReadOBJFile::GetCluster(void){
 			}
 		}
 
+		cluster_indices[i]=OrderCluster(cluster_indices[i]);
 	}
 
 }
@@ -820,22 +822,16 @@ void ReadOBJFile::EstimatekGkM(void)
 		//------
 		GLEdge e1;
 		GLEdge e2;
-		#pragma omp parallel for schedule(static)
-		for(int j=0; j<cluster_indices[i].size(); j+=2)
-		{
-			glm::vec3 p1 = glm::vec3(m_vcalc[i].x, m_vcalc[i].y, m_vcalc[i].z);
-			glm::vec3 p2 =  glm::vec3(m_vcalc[cluster_indices[i][j]].x, m_vcalc[cluster_indices[i][j]].y, m_vcalc[cluster_indices[i][j]].z);
-			glm::vec3 p3 = glm::vec3(m_vcalc[cluster_indices[i][j+1]].x, m_vcalc[cluster_indices[i][j+1]].y, m_vcalc[cluster_indices[i][j+1]].z);
-			glm::vec3 v1 = p2 - p1;
-			glm::vec3 v2 = p3 - p1; 
 
-			//----------------------------
-			e1.e=v1;
+		glm::vec3 p1 = glm::vec3(m_vcalc[i].x, m_vcalc[i].y, m_vcalc[i].z);	
+		//#pragma omp parallel for  schedule(static) //not good idea because the list wont be in order after
+		for(int j=0; j<cluster_indices[i].size()-1; j+=1)
+		{
+			glm::vec3 p2 =  glm::vec3(m_vcalc[cluster_indices[i][j]].x, m_vcalc[cluster_indices[i][j]].y, m_vcalc[cluster_indices[i][j]].z);
+			glm::vec3 v2 = p2 - p1;
+			e1.e=v2;
 			e1.p=p2;
-			e2.e=v2;
-			e2.p=p3;
 			order_edges.push_back(e1);
-			order_edges.push_back(e2);
 		}
 		
 		glm::vec3 cross_edge;
@@ -844,9 +840,8 @@ void ReadOBJFile::EstimatekGkM(void)
 		GLEdge prev_edge;
 		GLEdge current_edge;
 		GLEdge nxt_edge;
-		order_edges=OrderGLEdges(order_edges);
 		int ridge_or_valley=1;
-		float coeff; float coeff2;
+		float coeff;
 
 		for(int k=1; k<order_edges.size()-1; k++){ 
 			prev_edge=order_edges[k-1];
@@ -932,68 +927,36 @@ void ReadOBJFile::EstimatekGkM(void)
 
 }
 void ReadOBJFile::EstimateSGF(void){
- //std::sort(s.begin(), s.end(), customLess);
 	#pragma omp parallel for schedule(static)
 	for(int i=0; i<size_m_v; i++) //for each vertex
 	{
-		int p=0; //for test
-		int r=0;//For test
-		float sum_angles=0; //for kG
-		float sum_area=0;//for kG and kM
-		float sum_dihedral_angles=0; //for kM
+
 		float variance_SI=0;
-		
-		//std::vector<glm::vec3> ordered_edges;
-		//----------------------
-		std::vector<GLEdge> order_edges;
-		float angle;
-		float area;
-		//------
-		GLEdge e1;
-		GLEdge e2;
-		#pragma omp parallel for schedule(static)
-		for(int j=0; j<cluster_indices[i].size(); j+=2)
-		{
-			glm::vec3 p1 = glm::vec3(m_vcalc[i].x, m_vcalc[i].y, m_vcalc[i].z);
-			glm::vec3 p2 =  glm::vec3(m_vcalc[cluster_indices[i][j]].x, m_vcalc[cluster_indices[i][j]].y, m_vcalc[cluster_indices[i][j]].z);
-			glm::vec3 p3 = glm::vec3(m_vcalc[cluster_indices[i][j+1]].x, m_vcalc[cluster_indices[i][j+1]].y, m_vcalc[cluster_indices[i][j+1]].z);
-			glm::vec3 v1 = p2 - p1;
-			glm::vec3 v2 = p3 - p1; 
-
-			//----------------------------
-			e1.e=v1;
-			e1.p=p2;
-			e2.e=v2;
-			e2.p=p3;
-			e1.v =m_vcalc[cluster_indices[i][j]];
-			e2.v =m_vcalc[cluster_indices[i][j+1]];
-			order_edges.push_back(e1);
-			order_edges.push_back(e2);
-		}
-		
-
-		GLEdge current_edge;
-		order_edges=OrderGLEdges(order_edges);
-		int ridge_or_valley=1;
-		float coeff; float coeff2;
 		float sum_shape_index=0;
 		float mean_SI;
 		float sum=0;
-		for(int k=0; k<order_edges.size(); k++){ 
-			current_edge=order_edges[k];
+		GLVertex v ;
+		//#pragma omp parallel for  private(v) schedule(static) //dangerous because all are modifying the samevariables?
+		for(int j=0; j<cluster_indices[i].size(); j+=1){ 
+			v =m_vcalc[cluster_indices[i][j]];
 			//area for kG and kM
-			sum+=0.5*current_edge.v.area*pow(current_edge.v.shape_index, 3); 
+			sum+= v.area*pow(v.shape_index, 3); 
 			//sum_area+=current_edge.v.area; 
-			sum_shape_index+=pow(current_edge.v.shape_index, 3);
-
+			sum_shape_index+=v.shape_index;
 
 		}
-		mean_SI= sum_shape_index/order_edges.size();
-		for(int k=0; k<order_edges.size(); k++){ 
-			variance_SI+=0.5* pow( order_edges[k].v.shape_index-mean_SI,2);
+		mean_SI= sum_shape_index/cluster_indices[i].size();
+		//#pragma omp parallel for private (v) schedule(static)
+		for(int j=0; j<cluster_indices[i].size(); j+=1){  //Estimate variance of the shape index of the vertices in the cluster
+			v =m_vcalc[cluster_indices[i][j]];
+			variance_SI+= pow( v.shape_index-mean_SI,2);
 		}
-		variance_SI=variance_SI/order_edges.size();
-		m_vcalc[i].SGF= sum+variance_SI;
+
+		variance_SI=variance_SI/cluster_indices[i].size();
+		m_vcalc[i].SGF= 0.5 * sum+0.5*variance_SI;
+		int r = m_vcalc[i].SGF;
+		if(r < 0)
+			int p=1;
 	
 	}
 }
@@ -1120,6 +1083,54 @@ std::vector<glm::vec3> ReadOBJFile::OrderEdges(std::vector<glm::vec3> edges){
 		edges.erase(edges.end()-1);
 	return edges;
 	
+}
+
+std::vector<int> ReadOBJFile::OrderCluster(std::vector<int> cluster){
+	
+	for(int i=0; i<cluster.size()-2; i+=2){
+		if( cluster[i+1] != cluster[i] ){
+			if(cluster[i+1]== cluster[i+3]){ //if next couple of vectors has it's second element equal to the second vector of this couple
+				int tmp=cluster[i+2]; //swap the vectors of the next couple
+				cluster[i+2]=cluster[i+3];
+				cluster[i+3]=tmp;
+			}
+			else{    //find a couple of vectors which contain v1
+				for(int j=i+4; j<cluster.size(); j+=2){ //find another couple which contains the second vector
+					if( cluster[i+1] == cluster[j] ){  //if the couple of vectors has it's first element equal to the second vector of this couple swap
+						int tmp=cluster[i+2];
+						cluster[i+2]=cluster[j];
+						cluster[j]=tmp;
+						tmp=cluster[i+3];
+						cluster[i+3]=cluster[j+1];
+						cluster[j+1]=tmp;
+						break;
+					}
+					else if( cluster[i+1] == cluster[j+1] ){//if the couple of vectors has it's second element equal to the second vector of this couple swap 
+						int tmp=cluster[i+2];
+						cluster[i+2]=cluster[j+1];
+						cluster[j+1]=tmp;
+						tmp=cluster[i+3];
+						cluster[i+3]=cluster[j];
+						cluster[j]=tmp;
+						break;
+					}
+	
+				}
+
+			}
+
+		}
+
+	}
+	 //delete duplicates (ex: V1 V2 V2 V4 V4 V3 V3 V1 --> V1 V2 V4 V3)
+	for(int i=2; i<cluster.size(); i++){ 
+		cluster.erase(cluster.begin() + i);
+	}
+	//cluster.erase(cluster.end()-1);
+	if(cluster[cluster.size()-1] == cluster[0])
+		cluster.erase(cluster.end()-1);
+
+	return cluster;
 }
 float ReadOBJFile::GetShapeIndex( int i){
 		//float tmpkM=kM;
