@@ -23,6 +23,7 @@ typedef struct  Vertex        //保存点信息
 	float kmax;
 	float SGF;
 	float area;
+
 	//std::vector<GLEdge> edges;
 	
 	
@@ -85,6 +86,7 @@ public:
 	float GetShapeIndex( int i);
 	void GetInfo();
 	void GetMtlInfo();
+	void GetCluster(void);
 	void EstimatekGkM(void);
 	void EstimateSGF(void);
 	bool VertexEqual(GLVertex v1, GLVertex v2);
@@ -111,7 +113,7 @@ public:
 	int size_m_v;
 	bool useNormalEstimation;
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
-	std::vector<glm::vec3>* normal_buffer;
+	std::vector<int>* cluster_indices;
 	int gauss_sup;
 	int gauss_inf;
 	Curvature use_curvature;
