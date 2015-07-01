@@ -899,6 +899,7 @@ void CReadModeDlg::OnLbnSelchangeList1()
 		protein1->m_rof->use_curvature=curv;
 	}
 	curv1=curv;	
+	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnLbnSelchangeList2()
 {
@@ -927,6 +928,7 @@ void CReadModeDlg::OnLbnSelchangeList2()
 		protein2->m_rof->use_curvature=curv;
 	}
 	curv2=curv;	
+	::SetFocus(::GetActiveWindow());
 }
 
 //-----ON DESTRUCT-------------------//
@@ -979,6 +981,7 @@ void CReadModeDlg::OnMeancurvatureWithEdgeCurv()
 	if(protein1->m_rof!=NULL){
 		protein1->m_rof->use_ridgeorvalley=true;
 		protein1->m_rof->EstimatekGkM();
+		protein1->m_rof->EstimateSGF();
 	}
 }
 void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv()
@@ -987,6 +990,7 @@ void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv()
 	if(protein1->m_rof!=NULL){
 		protein1->m_rof->use_ridgeorvalley=false;
 		protein1->m_rof->EstimatekGkM();
+		protein1->m_rof->EstimateSGF();
 	}
 }
 void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
@@ -995,6 +999,7 @@ void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
 	if(protein2->m_rof!=NULL){
 		protein2->m_rof->use_ridgeorvalley=true;
 		protein2->m_rof->EstimatekGkM();
+		protein2->m_rof->EstimateSGF();
 	}
 }
 void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
@@ -1003,6 +1008,7 @@ void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
 	if(protein2->m_rof!=NULL){
 		protein2->m_rof->use_ridgeorvalley=false;
 		protein2->m_rof->EstimatekGkM();
+		protein2->m_rof->EstimateSGF();
 	}
 }
 void CReadModeDlg::OnProtein1Resetview()

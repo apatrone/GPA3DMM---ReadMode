@@ -724,7 +724,7 @@ int ReadOBJFile::EstimateNormals(void)
 	
 std::vector<glm::vec3>* normal_buffer = new std::vector<glm::vec3>[vertexIndices.size()]();
 //#pragma omp parallel for  //Fait planter sur certains obj.... (1HLB, etc)
-for( int i = 0; i < vertexIndices.size(); i += 3 )
+for( int i = 0; i < vertexIndices.size()-2; i += 3 )
 {
 	// get the three vertices that make the faces
 	glm::vec3 p1 = glm::vec3(m_v[vertexIndices[i+0]].x, m_v[vertexIndices[i+0]].y, m_v[vertexIndices[i+0]].z);
@@ -776,7 +776,7 @@ void ReadOBJFile::GetCluster(void){
 	for(int i=0; i<size_m_v; i++) //for each vertex
 	{
 		#pragma omp parallel for schedule(guided)  //Crashes when alone
-		for(int j=0; j<vertexIndices.size(); j+=3) //for each faceof the mesh
+		for(int j=0; j<vertexIndices.size()-2; j+=3) //for each faceof the mesh
 		{	
 			//if current vertex belongs to the current triangle/face
 			//if(vertexIndices[j]==i || etc. is the same?
@@ -825,7 +825,7 @@ void ReadOBJFile::EstimatekGkM(void)
 
 		glm::vec3 p1 = glm::vec3(m_vcalc[i].x, m_vcalc[i].y, m_vcalc[i].z);	
 		//#pragma omp parallel for  schedule(static) //not good idea because the list wont be in order after
-		for(int j=0; j<cluster_indices[i].size()-1; j+=1)
+		for(int j=0; j<cluster_indices[i].size(); j+=1)
 		{
 			glm::vec3 p2 =  glm::vec3(m_vcalc[cluster_indices[i][j]].x, m_vcalc[cluster_indices[i][j]].y, m_vcalc[cluster_indices[i][j]].z);
 			glm::vec3 v2 = p2 - p1;
