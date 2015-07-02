@@ -466,7 +466,6 @@ void CReadModeDlg::OnMouseMove(UINT nFlags, CPoint point)
 		//(GetAsyncKeyState(VK_CONTROL) & 0x8000) &&
 			protein1->m_rot_x+=0.5*(m_MouseL.y-point.y);
 			protein1->m_rot_y-=0.5*(m_MouseL.x-point.x);
-			
 			//protein1->Draw();
 		}
 	}
@@ -479,7 +478,7 @@ void CReadModeDlg::OnMouseMove(UINT nFlags, CPoint point)
 			{
 				protein1->m_rot_y = protein1->m_rot_y + ((float)ROTATE_SPEED * (point.x - m_MouseL.x));
 			}
-
+			
 			if ((point.y - m_MouseL.y) != 0)
 			{	
 				protein1->m_rot_x = protein1->m_rot_x + ((float)ROTATE_SPEED * (point.y - m_MouseL.y));

@@ -8,3 +8,6 @@ nMatrix = mat4_inverse(mat4_transpose(mvMatrix));
 
 problems: glm website often unavailable in china, even with proxy. 
 no doc!!  had to rewrite functions, helped me understand the math
+
+careful,did not take care of the case of isolated vertices!!
+the problem is, some files are quads and the prog does not work on these files -.-

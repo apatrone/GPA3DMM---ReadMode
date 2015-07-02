@@ -71,6 +71,10 @@ typedef  struct Edges{
 	glm::vec3 e2;
 
 }OrderedEdges;
+//-------------
+typedef struct { double x, y,z;int group; int original_index;} point_t, *point;
+//-------------
+
 class ReadOBJFile
 {
 public:
@@ -95,6 +99,16 @@ public:
 	float GetMixedArea(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3);
 	glm::vec3 GetCrossProduct(glm::vec3 v1,glm::vec3 v2);
 	bool ReadOBJFile::Collinear(glm::vec3 v1,glm::vec3 v2);
+	void SimilarityMeasurement(void);
+	//------------------------------
+	double randf(double m);
+	point gen_xy();
+	inline double dist2(point a, point b);
+	inline int nearest(point pt, point cent, int n_cluster, double *d2);
+	void kpp(point pts, int len, point cent, int n_cent);
+	point lloyd(point pts, int len, int n_cluster);
+
+	//------------------------------
 	char  m_FileName[256];
 	int m_nCount;
 	GLVertex *m_v;
@@ -118,5 +132,6 @@ public:
 	int gauss_inf;
 	Curvature use_curvature;
 	bool use_ridgeorvalley;
+	point clusters;
 };
 

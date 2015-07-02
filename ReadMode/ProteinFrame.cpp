@@ -8,7 +8,7 @@
 #include <GL/glew.h>
 #include "shader.hpp"
 #include "controls.hpp"
-
+//#include <glm/gtc/matrix_transform.hpp>
 ProteinFrame::ProteinFrame(void)
 {
 	m_x=0;
@@ -333,8 +333,8 @@ void ProteinFrame::LoadFrame(CWnd *pDlg)
 	::glLoadIdentity();
 	
 	::glShadeModel(GL_SMOOTH);  //启用阴影平滑
-	::glClearColor(1.0f,1.0f,1.0f,0.3f); //设置黑色背景
-	
+	::glClearColor(1.0f,1.0f,1.0f,0.3f); //设置黑色背景 
+
 	::glClearDepth(1.0f);  //设置深度缓存
 	::glEnable(GL_DEPTH_TEST); //启用深度测试
 	::glDepthFunc(GL_LESS);// 所作深度测试类型
