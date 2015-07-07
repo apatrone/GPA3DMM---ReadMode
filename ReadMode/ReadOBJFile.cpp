@@ -980,29 +980,75 @@ void ReadOBJFile::EstimateSGF(void){
 void ReadOBJFile::SimilarityMeasurement(void)
 {
 	point v = gen_xy();
-	clusters = lloyd(v, size_m_v,48);
-	float *k_shape_index=new float[48];
-	float *k_sgf = new float[48];
-	float matrix[2][48];
-	float matrix_t[48][2];
-	float matrix_mult[48][48]; //matrix_t * matrix
+	clusters = lloyd(v, size_m_v,48);  //clusters contains the K=48 data points
+	float *k_shape_index=new float[48];//to store the shape index of the K data points
+	float *k_sgf = new float[48];  //to store the SGF of the K data points
+	float matrix[48][2]; //matrix 
+	float matrix_t[2][48]; //transposed matrix
+	float matrix_mult[48][48]; //transposed matrix * matrix
+	//compute matrix and transposed matrix 
 	for(int i=0; i<48; i++){
 		k_shape_index[i]=m_vcalc[clusters[i].original_index].shape_index;
 		k_sgf[i]= m_vcalc[clusters[i].original_index].SGF;
-		matrix[0][i]=k_shape_index[i];
-		matrix[1][i]=k_sgf[i];
-		matrix_t[i][0]=k_shape_index[i];
-		matrix_t[i][1]=k_sgf[i];
+		matrix_t[0][i]=k_shape_index[i];
+		matrix_t[1][i]=k_sgf[i];
+		matrix[i][0]=k_shape_index[i];
+		matrix[i][1]=k_sgf[i];
 	}
+	//compute transposed matrix * matrix
 	for(int i=0; i<48; i++){
 		for(int j=0; j<48; j++){
-		matrix_mult[i][j]=0;
+		feature_matrix[i][j]=0;
 			for(int k=0; k<2; k++){
-				matrix_mult[i][j] += matrix_t[i][k] * matrix[k][j];
+				feature_matrix[i][j] +=  matrix_t[k][j] * matrix[i][k];
 			}
 		}
 	}
 
+	//get string of matrix_mult for matlab
+	float flt;
+	CString str;str= "["; 
+	char* s= new char[10];
+	for(int i=0; i<48; i++){ //rows
+		if(i!=0)
+			str+="; ";
+		for(int j=0; j<48; j++){ //columns
+			flt=feature_matrix[j][i];
+			sprintf(s, "%.4g", flt );  
+			str+=s;
+			if(j!=47)
+				str+= ", ";
+		}
+	}
+	str+="]";
+	////string for matrix_t
+	//str="[";
+	//for(int i=0; i<48; i++){ //rows
+	//	if(i!=0)
+	//		str+="; ";
+	//	for(int j=0; j<2; j++){  //columns
+	//		flt=matrix_t[j][i];
+	//		sprintf(s, "%.4g", flt );  
+	//		str+=s;
+	//		if(j!=1)
+	//			str+= ", ";
+	//	}
+	//}
+	//str+="]";
+	////string for matrix
+	//str="[";
+	//for(int i=0; i<2; i++){ //rows
+	//	if(i!=0)
+	//		str+="; ";
+	//	for(int j=0; j<48; j++){  //columns
+	//		flt=matrix[j][i];
+	//		sprintf(s, "%.4g", flt );  
+	//		str+=s;
+	//		if(j!=47)
+	//			str+= ", ";
+	//	}
+	//}
+	//str+="]";
 }
 bool ReadOBJFile::VertexEqual(GLVertex v1, GLVertex v2)
 {
@@ -1128,7 +1174,6 @@ std::vector<glm::vec3> ReadOBJFile::OrderEdges(std::vector<glm::vec3> edges){
 	return edges;
 	
 }
-
 std::vector<int> ReadOBJFile::OrderCluster(std::vector<int> cluster){
 	if(cluster.size()==0 ||cluster.size()==1 || cluster.size()==2)
 		return cluster;

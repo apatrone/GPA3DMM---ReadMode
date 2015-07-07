@@ -325,6 +325,8 @@ void CReadModeDlg::OnBnClickedReadm()
 		protein1->m_rof->use_curvature = curv1;
 	}
 	//SetTimer(1,100,NULL);
+	if(protein1->m_rof && protein2->m_rof)
+		ComputeGreyRelation();
 	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnBnClickedReadm2()
@@ -981,6 +983,7 @@ void CReadModeDlg::OnMeancurvatureWithEdgeCurv()
 		protein1->m_rof->use_ridgeorvalley=true;
 		protein1->m_rof->EstimatekGkM();
 		protein1->m_rof->EstimateSGF();
+		protein1->m_rof->SimilarityMeasurement();
 	}
 }
 void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv()
@@ -990,6 +993,7 @@ void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv()
 		protein1->m_rof->use_ridgeorvalley=false;
 		protein1->m_rof->EstimatekGkM();
 		protein1->m_rof->EstimateSGF();
+		protein1->m_rof->SimilarityMeasurement();
 	}
 }
 void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
@@ -999,6 +1003,7 @@ void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
 		protein2->m_rof->use_ridgeorvalley=true;
 		protein2->m_rof->EstimatekGkM();
 		protein2->m_rof->EstimateSGF();
+		protein2->m_rof->SimilarityMeasurement();
 	}
 }
 void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
@@ -1008,6 +1013,7 @@ void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
 		protein2->m_rof->use_ridgeorvalley=false;
 		protein2->m_rof->EstimatekGkM();
 		protein2->m_rof->EstimateSGF();
+		protein2->m_rof->SimilarityMeasurement();
 	}
 }
 void CReadModeDlg::OnProtein1Resetview()
@@ -1023,3 +1029,46 @@ void CReadModeDlg::OnProtein2Resetview()
 
 
 
+void CReadModeDlg::ComputeGreyRelation(void)
+{
+	float x_row[48][48]; float y_row[48][48];
+	float s_row[48]={0}; float t_row[48]={0};
+	float eta_row[48]={0};
+	for(int i=0; i<48; i++)  //columns
+	{
+		for(int j=0; j<48; j++)//rows
+		{
+			x_row[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[1][j];
+			y_row[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[1][j];
+			s_row[j]+=x_row[i][j];
+			t_row[j]+=y_row[i][j];
+		}
+	}
+	float sum_row=0;
+	for(int i=0; i<48; i++)  
+	{
+		eta_row[i]= (1+ ::abs(s_row[i])+::abs(t_row[i]))/ ( 1 + ::abs(s_row[i])+::abs(t_row[i])+::abs(s_row[i]-t_row[i]));
+		sum_row+=eta_row[i];
+	}
+	float x_column[48][48]; float y_column[48][48];
+	float s_column[48]={0}; float t_column[48]={0};
+	float eta_column[48]={0};
+	for(int i=0; i<48; i++)  //columns
+	{
+		for(int j=0; j<48; j++)//rows
+		{
+			x_column[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[i][1];
+			y_column[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[i][1];
+			s_column[i]+=x_column[i][j];
+			t_column[i]+=y_column[i][j];
+		}
+	}
+	float sum_column=0;
+	for(int i=0; i<48; i++)  
+	{
+		eta_column[i]= (1+ ::abs(s_column[i])+::abs(t_column[i]))/ ( 1 + ::abs(s_column[i])+::abs(t_column[i])+::abs(s_column[i]-t_column[i]));
+		sum_column+=eta_column[i];
+	}
+	float degree= 0.5 * (sum_row + sum_column) / 48;
+
+}

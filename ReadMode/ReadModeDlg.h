@@ -145,4 +145,5 @@ public:
 	afx_msg void OnLbnSelchangeList1();
 	CListBox m_uselist2;
 	afx_msg void OnLbnSelchangeList2();
+	void ComputeGreyRelation(void);
 };

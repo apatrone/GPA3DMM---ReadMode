@@ -133,5 +133,6 @@ public:
 	Curvature use_curvature;
 	bool use_ridgeorvalley;
 	point clusters;
+	float feature_matrix[48][48];
 };
 
