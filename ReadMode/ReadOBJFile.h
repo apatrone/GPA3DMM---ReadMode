@@ -90,7 +90,7 @@ public:
 	float GetShapeIndex( int i);
 	void GetInfo();
 	void GetMtlInfo();
-	void GetCluster(void);
+	void GetCluster(bool lloyd=false);
 	void EstimatekGkM(void);
 	void EstimateSGF(void);
 	bool VertexEqual(GLVertex v1, GLVertex v2);

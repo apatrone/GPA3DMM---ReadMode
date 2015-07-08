@@ -770,42 +770,57 @@ for( int i = 0; i < vertexIndices.size()-2; i += 3 )
 
  return true;
 }
-void ReadOBJFile::GetCluster(void){
-	
+void ReadOBJFile::GetCluster(bool lloyd){
+	//an array of columns, where cluster_indices[i] contains the indices of the vertices that are adjacent to vi
 	cluster_indices=new std::vector<int>[size_m_v]();
-	#pragma omp parallel for schedule(static)
-	for(int i=0; i<size_m_v; i++) //for each vertex
-	{
-		#pragma omp parallel for schedule(guided)  //Crashes when alone
-		for(int j=0; j<vertexIndices.size()-2; j+=3) //for each faceof the mesh
-		{	
-			//if current vertex belongs to the current triangle/face
-			//if(vertexIndices[j]==i || etc. is the same?
-			if(i==13442)
-				int p=2;
-			if(vertexIndices[j]==i|| vertexIndices[j+1]==i || vertexIndices[j+2]==i)
-			{
+	if(lloyd==false){
+		#pragma omp parallel for schedule(static)
+		for(int i=0; i<size_m_v; i++) //for each vertex
+		{
+			#pragma omp parallel for schedule(guided)  //Crashes when alone
+			for(int j=0; j<vertexIndices.size()-2; j+=3) //for each faceof the mesh
+			{	
+				//if current vertex belongs to the current triangle/face
+				if(vertexIndices[j]==i|| vertexIndices[j+1]==i || vertexIndices[j+2]==i)
+				{
 
-				if( vertexIndices[j]==i)
-				{
-					cluster_indices[i].push_back(vertexIndices[j+1]);
-					cluster_indices[i].push_back(vertexIndices[j+2]);
-				}
-				else if(vertexIndices[j+1]==i)
-				{
-					cluster_indices[i].push_back(vertexIndices[j]);
-					cluster_indices[i].push_back(vertexIndices[j+2]);
-				}
-				else if(vertexIndices[j+2]==i)
-				{
-					cluster_indices[i].push_back(vertexIndices[j]);
-					cluster_indices[i].push_back(vertexIndices[j+1]);
+					if( vertexIndices[j]==i)
+					{
+						cluster_indices[i].push_back(vertexIndices[j+1]);
+						cluster_indices[i].push_back(vertexIndices[j+2]);
+					}
+					else if(vertexIndices[j+1]==i)
+					{
+						cluster_indices[i].push_back(vertexIndices[j]);
+						cluster_indices[i].push_back(vertexIndices[j+2]);
+					}
+					else if(vertexIndices[j+2]==i)
+					{
+						cluster_indices[i].push_back(vertexIndices[j]);
+						cluster_indices[i].push_back(vertexIndices[j+1]);
+					}
 				}
 			}
-		}
 
-		cluster_indices[i]=OrderCluster(cluster_indices[i]);
+			cluster_indices[i]=OrderCluster(cluster_indices[i]);
+		}
 	}
+	else{ //use lloyd clustering
+		point v = gen_xy();
+		clusters = this->lloyd(v, size_m_v,48);
+
+		for(int i=0; i<size_m_v; i++){ //for each vertex
+			point pnt ; int j;
+			for ( j = 0, pnt = v; j < size_m_v; j++, pnt++){
+				if(v[i].group == v[j].group && v[j].original_index != i){ //if same group and not same point
+					cluster_indices[i].push_back(v[j].original_index);
+				}
+			}
+			cluster_indices[i]=OrderCluster(cluster_indices[i]);
+		}
+		
+	}
+
 
 }
 void ReadOBJFile::EstimatekGkM(void)
@@ -977,79 +992,6 @@ void ReadOBJFile::EstimateSGF(void){
 	}
 
 }
-void ReadOBJFile::SimilarityMeasurement(void)
-{
-	point v = gen_xy();
-	clusters = lloyd(v, size_m_v,48);  //clusters contains the K=48 data points
-	float *k_shape_index=new float[48];//to store the shape index of the K data points
-	float *k_sgf = new float[48];  //to store the SGF of the K data points
-	float matrix[48][2]; //matrix 
-	float matrix_t[2][48]; //transposed matrix
-	float matrix_mult[48][48]; //transposed matrix * matrix
-	//compute matrix and transposed matrix 
-	for(int i=0; i<48; i++){
-		k_shape_index[i]=m_vcalc[clusters[i].original_index].shape_index;
-		k_sgf[i]= m_vcalc[clusters[i].original_index].SGF;
-		matrix_t[0][i]=k_shape_index[i];
-		matrix_t[1][i]=k_sgf[i];
-		matrix[i][0]=k_shape_index[i];
-		matrix[i][1]=k_sgf[i];
-	}
-	//compute transposed matrix * matrix
-	for(int i=0; i<48; i++){
-		for(int j=0; j<48; j++){
-		feature_matrix[i][j]=0;
-			for(int k=0; k<2; k++){
-				feature_matrix[i][j] +=  matrix_t[k][j] * matrix[i][k];
-			}
-		}
-	}
-
-	//get string of matrix_mult for matlab
-	float flt;
-	CString str;str= "["; 
-	char* s= new char[10];
-	for(int i=0; i<48; i++){ //rows
-		if(i!=0)
-			str+="; ";
-		for(int j=0; j<48; j++){ //columns
-			flt=feature_matrix[j][i];
-			sprintf(s, "%.4g", flt );  
-			str+=s;
-			if(j!=47)
-				str+= ", ";
-		}
-	}
-	str+="]";
-	////string for matrix_t
-	//str="[";
-	//for(int i=0; i<48; i++){ //rows
-	//	if(i!=0)
-	//		str+="; ";
-	//	for(int j=0; j<2; j++){  //columns
-	//		flt=matrix_t[j][i];
-	//		sprintf(s, "%.4g", flt );  
-	//		str+=s;
-	//		if(j!=1)
-	//			str+= ", ";
-	//	}
-	//}
-	//str+="]";
-	////string for matrix
-	//str="[";
-	//for(int i=0; i<2; i++){ //rows
-	//	if(i!=0)
-	//		str+="; ";
-	//	for(int j=0; j<48; j++){  //columns
-	//		flt=matrix[j][i];
-	//		sprintf(s, "%.4g", flt );  
-	//		str+=s;
-	//		if(j!=47)
-	//			str+= ", ";
-	//	}
-	//}
-	//str+="]";
-}
 bool ReadOBJFile::VertexEqual(GLVertex v1, GLVertex v2)
 {
 	if(v1.x==v2.x && v1.y==v2.y &&v1.z==v2.z )
@@ -1177,7 +1119,7 @@ std::vector<glm::vec3> ReadOBJFile::OrderEdges(std::vector<glm::vec3> edges){
 std::vector<int> ReadOBJFile::OrderCluster(std::vector<int> cluster){
 	if(cluster.size()==0 ||cluster.size()==1 || cluster.size()==2)
 		return cluster;
-	for(int i=0; i<cluster.size()-2; i+=2){
+	for(int i=0; i<cluster.size()-3; i+=2){
 		if( cluster[i+1] != cluster[i] ){
 			if(cluster[i+1]== cluster[i+3]){ //if next couple of vectors has it's second element equal to the second vector of this couple
 				int tmp=cluster[i+2]; //swap the vectors of the next couple
@@ -1185,7 +1127,7 @@ std::vector<int> ReadOBJFile::OrderCluster(std::vector<int> cluster){
 				cluster[i+3]=tmp;
 			}
 			else{    //find a couple of vectors which contain v1
-				for(int j=i+4; j<cluster.size(); j+=2){ //find another couple which contains the second vector
+				for(int j=i+4; j<cluster.size()-3; j+=2){ //find another couple which contains the second vector
 					if( cluster[i+1] == cluster[j] ){  //if the couple of vectors has it's first element equal to the second vector of this couple swap
 						int tmp=cluster[i+2];
 						cluster[i+2]=cluster[j];
@@ -1305,12 +1247,80 @@ bool ReadOBJFile::Collinear(glm::vec3 v1,glm::vec3 v2)
 
 }
 
+/////////////
+void ReadOBJFile::SimilarityMeasurement(void)
+{
+	point v = gen_xy();
+	clusters = lloyd(v, size_m_v,48);  //clusters contains the K=48 data points
+	float *k_shape_index=new float[48];//to store the shape index of the K data points
+	float *k_sgf = new float[48];  //to store the SGF of the K data points
+	float matrix[48][2]; //matrix 
+	float matrix_t[2][48]; //transposed matrix
+	float matrix_mult[48][48]; //transposed matrix * matrix
+	//compute matrix and transposed matrix 
+	for(int i=0; i<48; i++){
+		k_shape_index[i]=m_vcalc[clusters[i].original_index].shape_index;
+		k_sgf[i]= m_vcalc[clusters[i].original_index].SGF;
+		matrix_t[0][i]=k_shape_index[i];
+		matrix_t[1][i]=k_sgf[i];
+		matrix[i][0]=k_shape_index[i];
+		matrix[i][1]=k_sgf[i];
+	}
+	//compute transposed matrix * matrix
+	for(int i=0; i<48; i++){
+		for(int j=0; j<48; j++){
+		feature_matrix[i][j]=0;
+			for(int k=0; k<2; k++){
+				feature_matrix[i][j] +=  matrix_t[k][j] * matrix[i][k];
+			}
+		}
+	}
 
-//
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <math.h>
-// 
+	//get string of matrix_mult for matlab
+	float flt;
+	CString str;str= "["; 
+	char* s= new char[10];
+	for(int i=0; i<48; i++){ //rows
+		if(i!=0)
+			str+="; ";
+		for(int j=0; j<48; j++){ //columns
+			flt=feature_matrix[j][i];
+			sprintf(s, "%.4g", flt );  
+			str+=s;
+			if(j!=47)
+				str+= ", ";
+		}
+	}
+	str+="]";
+	////string for matrix_t
+	//str="[";
+	//for(int i=0; i<48; i++){ //rows
+	//	if(i!=0)
+	//		str+="; ";
+	//	for(int j=0; j<2; j++){  //columns
+	//		flt=matrix_t[j][i];
+	//		sprintf(s, "%.4g", flt );  
+	//		str+=s;
+	//		if(j!=1)
+	//			str+= ", ";
+	//	}
+	//}
+	//str+="]";
+	////string for matrix
+	//str="[";
+	//for(int i=0; i<2; i++){ //rows
+	//	if(i!=0)
+	//		str+="; ";
+	//	for(int j=0; j<48; j++){  //columns
+	//		flt=matrix[j][i];
+	//		sprintf(s, "%.4g", flt );  
+	//		str+=s;
+	//		if(j!=47)
+	//			str+= ", ";
+	//	}
+	//}
+	//str+="]";
+}
 
 double ReadOBJFile::randf(double m)
 {
@@ -1349,12 +1359,12 @@ ReadOBJFile::nearest(point pt, point cent, int n_cluster, double *d2)
 	double d, min_d;
  
 #	define for_n for (c = cent, i = 0; i < n_cluster; i++, c++)
-	for_n {
-		min_d = HUGE_VAL;
-		min_i = pt->group;
-		for_n {
-			if (min_d > (d = dist2(c, pt))) {
-				min_d = d; min_i = i;
+	for_n {   //for each centroid
+		min_d = HUGE_VAL;//minimal distance
+		min_i = pt->group; //minimal group
+		for_n {  //for each centroid
+			if (min_d > (d = dist2(c, pt))) { //if the distance between another centroid and the point is less than current one 
+				min_d = d; min_i = i;         //update distance and group for the point
 			}
 		}
 	}
@@ -1367,15 +1377,18 @@ void ReadOBJFile::kpp(point pts, int len, point cent, int n_cent)
 #	define for_len for (j = 0, p = pts; j < len; j++, p++)
 	int i, j;
 	int n_cluster;
-	double sum, *d = new double[len];
+	double sum;   //contains the sum of distances between each pt and nearest centroid
+	double *d = new double[len]; //contains distances between each pt and nearest centroid
  
 	point p, c;
-	cent[0] = pts[ rand() % len ];
-	for (n_cluster = 1; n_cluster < n_cent; n_cluster++) {
+	cent[0] = pts[ rand() % len ]; //first centroid is a random data point
+	for (n_cluster = 1; n_cluster < n_cent; n_cluster++) //for each cluster define original centroid
+	{ 
 		sum = 0;
-		for_len {
+		
+		for_len {				//for each data point find nearest centroid
 			nearest(p, cent, n_cluster, d + j);
-			sum += d[j];
+			sum += d[j];        
 		}
 		sum = randf(sum);
 		for_len {
@@ -1384,7 +1397,14 @@ void ReadOBJFile::kpp(point pts, int len, point cent, int n_cent)
 			break;
 		}
 	}
-	for_len p->group = nearest(p, cent, n_cluster, 0);
+	for_len p->group = nearest(p, cent, n_cluster, 0); //Returns nearest centroid for p
+		//print cent
+	CString str; str=" ";
+	char* s= new char[50];
+	for_n{
+		sprintf(s, "%.4g , %.4g, %.4g, %d , %d \n ", c->x, c->y, c->z, c->group, c->original_index );  
+		str+=s;
+	}
 	free(d);
 }
  
@@ -1392,25 +1412,45 @@ point ReadOBJFile::lloyd(point pts, int len, int n_cluster)
 {
 	int i, j, min_i;
 	int changed;
- 
+ 	CString str; str=" ";
+	char* s= new char[50];
 	point cent =new point_t[n_cluster], p , c;
  
 	/* assign init grouping randomly */
 	//for_len p->group = j % n_cluster;
- 
+
 	/* or call k++ init */
 	kpp(pts, len, cent, n_cluster);
  
 	do {
 		/* group element for centroids are used as counters */
-		for_n { c->group = 0; c->x = c->y  = c->z= 0; }
-		for_len {
-			c = cent + p->group;
-			c->group++;
-			c->x += p->x; c->y += p->y; c->z += p->z;
+		for_n { c->group = 0; c->x = c->y  = c->z= 0; } 
+		for_len {										 //for each data point p 
+			c = cent + p->group;							//get adress of the centroid corresponding to the group for this data point
+			c->group++;									//modify size of the group
+			c->x += p->x; c->y += p->y; c->z += p->z;  //centroid=sum of x, y and z of the pts p in this group
+			c->original_index= p->original_index;	//rajout, ça n'a aucun sens mais bon (affectation de l'index du dernier data point du groupe
 		}
-		for_n { c->x /= c->group; c->y /= c->group; c->z /= c->group;  }
- 
+		//
+		/*str=" ";
+		int i=0;
+		for_len{
+			sprintf(s, "%d \t", p->group );  
+			str+=s;
+			i++;
+			if(i%10==0)
+				str+="\n";
+		}
+		str=" ";
+		for_n{
+			if(c->group==0)
+				int p=1;
+			sprintf(s, "%.4g , %.4g, %.4g, %d , %d \n ", c->x, c->y, c->z, c->group, c->original_index );  
+			str+=s;
+		}*/
+		//
+		for_n { c->x /= (float)c->group; c->y /=(float) c->group; c->z /= (float)c->group;  }//get mean coordinates (=centroid) of each group 
+
 		changed = 0;
 		/* find closest centroid of each point */
 		for_len {
@@ -1423,7 +1463,12 @@ point ReadOBJFile::lloyd(point pts, int len, int n_cluster)
 	} while (changed > (len >> 10)); /* stop when 99.9% of points are good */
  
 	for_n { c->group = i; }
- 
+ 	//print cent
+	//str=" ";
+	//for_n{
+	//	sprintf(s, "%.4g , %.4g, %.4g, %d , %d \n ", c->x, c->y, c->z, c->group, c->original_index );  
+	//	str+=s;
+	//}
 	return cent;
 }
  

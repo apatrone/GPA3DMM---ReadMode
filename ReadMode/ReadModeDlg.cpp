@@ -1050,6 +1050,7 @@ void CReadModeDlg::ComputeGreyRelation(void)
 		eta_row[i]= (1+ ::abs(s_row[i])+::abs(t_row[i]))/ ( 1 + ::abs(s_row[i])+::abs(t_row[i])+::abs(s_row[i]-t_row[i]));
 		sum_row+=eta_row[i];
 	}
+
 	float x_column[48][48]; float y_column[48][48];
 	float s_column[48]={0}; float t_column[48]={0};
 	float eta_column[48]={0};
