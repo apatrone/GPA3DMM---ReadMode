@@ -208,12 +208,14 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_uselist1.AddString(L"Gaussian curvature");
 	m_uselist1.AddString(L"Shape Index");
 	m_uselist1.AddString(L"Salient Geometric Features");
+	m_uselist1.AddString(L"LLoyd Clusters");
 	m_uselist1.AddString(L"None");
 	m_uselist1.SetCurSel(0);
 	m_uselist2.AddString(L"Mean curvature");
 	m_uselist2.AddString(L"Gaussian curvature");
 	m_uselist2.AddString(L"Shape Index");
 	m_uselist2.AddString(L"Salient Geometric Features");
+	m_uselist2.AddString(L"LLoyd Clusters");
 	m_uselist2.AddString(L"None");
 	m_uselist2.SetCurSel(0);
 //	CRect rect;
@@ -221,6 +223,11 @@ BOOL CReadModeDlg::OnInitDialog()
 ////	trackball = new CTrackBall(rect.Width(), rect.Height(), protein1);
 	m_radio_button_curvature1.SetCheck(true);
 	m_radio_button_curvature2.SetCheck(true);
+	int highc=9, lowc=0;
+	for(int i=0; i<48; i++){
+		for(int j=0; j<3; j++)
+		rgb[i][j]=(rand () % (highc - lowc + 1) + lowc)/10.0;
+	}
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 void CReadModeDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -303,7 +310,8 @@ void CReadModeDlg::OnBnClickedReadm()
 	
 
 	if(protein1->m_rof==NULL){
-		protein1->LoadProtein(CW2A(pDlg->GetPathName()));	
+		protein1->LoadProtein(CW2A(pDlg->GetPathName()));
+		memcpy(protein1->m_rof->rgb,this->rgb, sizeof(this->rgb));
 		protein1->Draw();
 		m_init=true;
 	}
@@ -337,6 +345,7 @@ void CReadModeDlg::OnBnClickedReadm2()
 
 	if(protein2->m_rof==NULL){
 		protein2->LoadProtein(CW2A(pDlg->GetPathName()));	
+		memcpy(protein2->m_rof->rgb,this->rgb, sizeof(this->rgb));
 		protein2->Draw();
 		m_init=true;
 	}
@@ -893,6 +902,9 @@ void CReadModeDlg::OnLbnSelchangeList1()
 			curv=SGF;
 			break;
 		case 4:
+			curv=LLOYD;
+			break;
+		case 5:
 			curv=NONE;
 			break;
 	}
@@ -922,6 +934,9 @@ void CReadModeDlg::OnLbnSelchangeList2()
 			curv=SGF;
 			break;
 		case 4:
+			curv=LLOYD;
+			break;
+		case 5:
 			curv=NONE;
 			break;
 	}
@@ -1026,8 +1041,6 @@ void CReadModeDlg::OnProtein2Resetview()
 	// TODO: Add your command handler code here
 	protein2->ResetView();
 }
-
-
 
 void CReadModeDlg::ComputeGreyRelation(void)
 {

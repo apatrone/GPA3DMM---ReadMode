@@ -628,7 +628,8 @@ bool ReadOBJFile::ReadFile(char *FileName)
 	GetCluster();
 	EstimatekGkM();
 	EstimateSGF();
-	SimilarityMeasurement();
+	GetCluster(true);
+//	SimilarityMeasurement();
 }
 bool ReadOBJFile::ReadLine(FILE *fp,char *str)
 {
@@ -685,7 +686,12 @@ void ReadOBJFile::Draw()
 			else
 				::glColor3f(1.0f,0.0f,0.0f);
 		}
-		else if(use_curvature!=NONE){
+		else if(use_curvature==LLOYD){
+			//use colours of lloyd clustering
+			int colour_index=m_vcalc[vertexIndices[i]].group;
+			::glColor3f(rgb[colour_index][0],rgb[colour_index][1],rgb[colour_index][2]);
+		}
+		else if(use_curvature!=NONE ){
 			if(use_curvature==GAUSS)
 				comp=m_vcalc[vertexIndices[i]].kG * 100;
 			else if(use_curvature==MEAN)
@@ -701,9 +707,9 @@ void ReadOBJFile::Draw()
 				::glColor3f(0.0f,1.0f,1.0f); //turquoise					
 			}
 		}
-		else 
+		else{
 			::glColor3f(0.0f,1.0f,1.0f);
-
+		}
 		if(res>=2 && useNormalEstimation==false)  //if not using estimated normals
 			::glNormal3f(this->m_vn[normalIndices[i]].x,this->m_vn[normalIndices[i]].y,this->m_vn[normalIndices[i]].z);
 		else
@@ -772,8 +778,9 @@ for( int i = 0; i < vertexIndices.size()-2; i += 3 )
 }
 void ReadOBJFile::GetCluster(bool lloyd){
 	//an array of columns, where cluster_indices[i] contains the indices of the vertices that are adjacent to vi
-	cluster_indices=new std::vector<int>[size_m_v]();
-	if(lloyd==false){
+
+	if(lloyd==false){ //use adjacent clustering
+		cluster_indices=new std::vector<int>[size_m_v]();
 		#pragma omp parallel for schedule(static)
 		for(int i=0; i<size_m_v; i++) //for each vertex
 		{
@@ -806,18 +813,47 @@ void ReadOBJFile::GetCluster(bool lloyd){
 		}
 	}
 	else{ //use lloyd clustering
+		//cluster_indices_lloyd=new std::vector<int>[size_m_v]();
+		cluster_indices_lloyd=new std::vector<int>[48]();
 		point v = gen_xy();
 		clusters = this->lloyd(v, size_m_v,48);
-
-		for(int i=0; i<size_m_v; i++){ //for each vertex
-			point pnt ; int j;
-			for ( j = 0, pnt = v; j < size_m_v; j++, pnt++){
+		//create array of size_m_v data points containing for vi all the vertices in its cluster
+		/*for(int i=0; i<size_m_v; i++){ //for each vertex
+			for (int j = 0; j < size_m_v; j++){
 				if(v[i].group == v[j].group && v[j].original_index != i){ //if same group and not same point
-					cluster_indices[i].push_back(v[j].original_index);
+					cluster_indices_lloyd[i].push_back(v[j].original_index);
 				}
 			}
-			cluster_indices[i]=OrderCluster(cluster_indices[i]);
+			cluster_indices_lloyd[i]=OrderCluster(cluster_indices_lloyd[i]);
+		}*/
+		//create array of 48 groups: each column contains vertices of same group
+		#pragma omp parallel for
+		for(int i=0; i<48; i++){
+			#pragma omp parallel for
+			for (int j = 0; j < size_m_v; j++){
+				if(v[j].group == i){
+					cluster_indices_lloyd[i].push_back(v[j].original_index);
+					m_vcalc[v[j].original_index].group=i;
+				}
+			}
 		}
+		
+		//CString str; str="";
+		//char* s= new char[50];
+		////print clusters
+		//for(int i=0; i<48; i++){
+		//	for(int j=0; j<cluster_indices_lloyd[i].size(); j++){
+		//		sprintf(s, "%d", cluster_indices_lloyd[i][j]);
+		//		str+=s;
+		//		if(j==cluster_indices_lloyd[i].size()-1)
+		//			str+="\n";
+		//		else
+		//			str+="\t";
+		//	}
+		//
+		//}
+		//assign random colours to group
+
 		
 	}
 
@@ -1119,7 +1155,7 @@ std::vector<glm::vec3> ReadOBJFile::OrderEdges(std::vector<glm::vec3> edges){
 std::vector<int> ReadOBJFile::OrderCluster(std::vector<int> cluster){
 	if(cluster.size()==0 ||cluster.size()==1 || cluster.size()==2)
 		return cluster;
-	for(int i=0; i<cluster.size()-3; i+=2){
+	for(int i=0; i<cluster.size()-2; i+=2){
 		if( cluster[i+1] != cluster[i] ){
 			if(cluster[i+1]== cluster[i+3]){ //if next couple of vectors has it's second element equal to the second vector of this couple
 				int tmp=cluster[i+2]; //swap the vectors of the next couple
@@ -1127,7 +1163,7 @@ std::vector<int> ReadOBJFile::OrderCluster(std::vector<int> cluster){
 				cluster[i+3]=tmp;
 			}
 			else{    //find a couple of vectors which contain v1
-				for(int j=i+4; j<cluster.size()-3; j+=2){ //find another couple which contains the second vector
+				for(int j=i+4; j<cluster.size(); j+=2){ //find another couple which contains the second vector
 					if( cluster[i+1] == cluster[j] ){  //if the couple of vectors has it's first element equal to the second vector of this couple swap
 						int tmp=cluster[i+2];
 						cluster[i+2]=cluster[j];
@@ -1251,9 +1287,9 @@ bool ReadOBJFile::Collinear(glm::vec3 v1,glm::vec3 v2)
 void ReadOBJFile::SimilarityMeasurement(void)
 {
 	point v = gen_xy();
-	clusters = lloyd(v, size_m_v,48);  //clusters contains the K=48 data points
-	float *k_shape_index=new float[48];//to store the shape index of the K data points
-	float *k_sgf = new float[48];  //to store the SGF of the K data points
+	clusters = lloyd(v, size_m_v,48);  //clusters contains the 48=48 data points
+	float *k_shape_index=new float[48];//to store the shape index of the 48 data points
+	float *k_sgf = new float[48];  //to store the SGF of the 48 data points
 	float matrix[48][2]; //matrix 
 	float matrix_t[2][48]; //transposed matrix
 	float matrix_mult[48][48]; //transposed matrix * matrix

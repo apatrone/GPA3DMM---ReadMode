@@ -7,7 +7,8 @@
 #include <cmath>
 //#include "vector3.h"
 
-typedef enum Curvature{MEAN, GAUSS, SHAPEINDEX,SGF, NONE};
+
+typedef enum Curvature{MEAN, GAUSS, SHAPEINDEX,SGF, LLOYD, NONE};
 
 typedef struct  Vertex        //保存点信息
 {
@@ -23,10 +24,8 @@ typedef struct  Vertex        //保存点信息
 	float kmax;
 	float SGF;
 	float area;
-
+	int group;
 	//std::vector<GLEdge> edges;
-	
-	
 	//std::vector<Vector3> normal;
 } GLVertex ;
 typedef  struct Normal         //保存法线向量信息
@@ -128,11 +127,13 @@ public:
 	bool useNormalEstimation;
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 	std::vector<int>* cluster_indices;
+	std::vector<int>* cluster_indices_lloyd;
 	int gauss_sup;
 	int gauss_inf;
 	Curvature use_curvature;
 	bool use_ridgeorvalley;
 	point clusters;
 	float feature_matrix[48][48];
+	GLfloat rgb[48][3];
 };
 

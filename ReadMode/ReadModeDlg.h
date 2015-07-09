@@ -146,4 +146,5 @@ public:
 	CListBox m_uselist2;
 	afx_msg void OnLbnSelchangeList2();
 	void ComputeGreyRelation(void);
+	GLfloat rgb[48][3];
 };
