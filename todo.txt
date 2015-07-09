@@ -15,6 +15,9 @@ sinon faire wasd pour objet et fleches pour camera?
 
 gérer multikey!! pourri sinon
 
+user definition of K (number of clusters)
+how to get the same result with heuristic algorithm -.-
+
 FAIT:
 faire un thread séparé au lieu d'un timer?!!!non!! draw devrait etre dans un while!!dans un thread
 ptet que le prob du thread c'est quand on fait m-rot draw?à debugger (prob etait qu'il fallait rajouter une ligne  (p->LoadFrame(p->wnd);) opengl au début du thread)

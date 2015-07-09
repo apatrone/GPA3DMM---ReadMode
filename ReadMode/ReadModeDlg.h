@@ -66,6 +66,7 @@ public:
 	CComboBox m_ComboMove;
 	CString m_infoBox;
 	CWnd *m_infobox_handle;
+	CWnd *m_simdeg_handle;//similarity degree window
 	CWnd *m_gauss_inf_handle;
 	CWnd *m_gauss_sup_handle;
 	CWnd *m_gauss_inf_handle2;
@@ -147,4 +148,5 @@ public:
 	afx_msg void OnLbnSelchangeList2();
 	void ComputeGreyRelation(void);
 	GLfloat rgb[48][3];
+	afx_msg void OnChangeSimdegree();
 };

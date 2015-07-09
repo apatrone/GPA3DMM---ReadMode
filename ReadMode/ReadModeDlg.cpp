@@ -58,7 +58,6 @@ CReadModeDlg::CReadModeDlg(CWnd* pParent /*=NULL*/)
 	protein1=new ProteinFrame();
 	protein2=new ProteinFrame();
 	//protView=new ProteinView();
-	//m_info.SetWindowText((LPCTSTR)"bitch");
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
@@ -146,6 +145,7 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 
 	ON_LBN_SELCHANGE(IDC_LIST1, &CReadModeDlg::OnLbnSelchangeList1)
 	ON_LBN_SELCHANGE(IDC_LIST2, &CReadModeDlg::OnLbnSelchangeList2)
+	ON_EN_CHANGE(IDC_SIMDEGREE, &CReadModeDlg::OnChangeSimdegree)
 END_MESSAGE_MAP()
 
 
@@ -189,6 +189,7 @@ BOOL CReadModeDlg::OnInitDialog()
 	protein1->wnd=CWnd::GetDlgItem(IDC_SHOW1);
 	protein2->wnd=CWnd::GetDlgItem(IDC_SHOW2);
 	m_infobox_handle=GetDlgItem(IDC_INFO);
+	m_simdeg_handle=GetDlgItem(IDC_SIMDEGREE);
 	m_gauss_inf_handle=GetDlgItem(IDC_GAUSS_INF);
 	m_gauss_sup_handle=GetDlgItem(IDC_GAUSS_SUP);
 	m_gauss_inf_handle2=GetDlgItem(IDC_GAUSS_INF2);
@@ -366,7 +367,8 @@ void CReadModeDlg::OnBnClickedReadm2()
 		protein2->m_rof->gauss_sup = gauss_superior;
 		protein2->m_rof->use_curvature = curv2;
 	}
-	
+	if(protein1->m_rof && protein2->m_rof)
+		ComputeGreyRelation();
 	//SetTimer(1,100,NULL);
 	::SetFocus(::GetActiveWindow());
 }
@@ -1084,5 +1086,18 @@ void CReadModeDlg::ComputeGreyRelation(void)
 		sum_column+=eta_column[i];
 	}
 	float degree= 0.5 * (sum_row + sum_column) / 48;
+	CString tmp;
+	tmp.Format(_T("Similarity degree: %f"), degree);	
+	m_simdeg_handle->SetWindowTextW(tmp);
 
+}
+
+void CReadModeDlg::OnChangeSimdegree()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialogEx::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
 }
