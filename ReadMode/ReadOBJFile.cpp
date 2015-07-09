@@ -629,7 +629,7 @@ bool ReadOBJFile::ReadFile(char *FileName)
 	EstimatekGkM();
 	EstimateSGF();
 	GetCluster(true);
-//	SimilarityMeasurement();
+	SimilarityMeasurement();
 }
 bool ReadOBJFile::ReadLine(FILE *fp,char *str)
 {
@@ -1286,22 +1286,29 @@ bool ReadOBJFile::Collinear(glm::vec3 v1,glm::vec3 v2)
 /////////////
 void ReadOBJFile::SimilarityMeasurement(void)
 {
-	point v = gen_xy();
-	clusters = lloyd(v, size_m_v,48);  //clusters contains the 48=48 data points
-	float *k_shape_index=new float[48];//to store the shape index of the 48 data points
-	float *k_sgf = new float[48];  //to store the SGF of the 48 data points
 	float matrix[48][2]; //matrix 
 	float matrix_t[2][48]; //transposed matrix
 	float matrix_mult[48][48]; //transposed matrix * matrix
+	float *mean_shape_index=new float[48];//to store the shape index of the 48 data points
+	float *mean_sgf=new float[48]; //to store the SGF of the 48 data points
+	
 	//compute matrix and transposed matrix 
 	for(int i=0; i<48; i++){
-		k_shape_index[i]=m_vcalc[clusters[i].original_index].shape_index;
-		k_sgf[i]= m_vcalc[clusters[i].original_index].SGF;
-		matrix_t[0][i]=k_shape_index[i];
-		matrix_t[1][i]=k_sgf[i];
-		matrix[i][0]=k_shape_index[i];
-		matrix[i][1]=k_sgf[i];
+		float sum_si=0;
+		float sum_sgf=0;
+		for(int j=0; j<cluster_indices_lloyd[i].size();j++){
+			sum_si+=m_vcalc[cluster_indices_lloyd[i][j]].shape_index;
+			sum_sgf+=m_vcalc[cluster_indices_lloyd[i][j]].SGF;
+		}
+		mean_shape_index[i]=sum_si/cluster_indices_lloyd[i].size();
+		mean_sgf[i]=sum_sgf/cluster_indices_lloyd[i].size();
+		
+		matrix_t[0][i]=mean_shape_index[i];
+		matrix_t[1][i]=mean_sgf[i];
+		matrix[i][0]=mean_shape_index[i];
+		matrix[i][1]=mean_sgf[i];
 	}
+
 	//compute transposed matrix * matrix
 	for(int i=0; i<48; i++){
 		for(int j=0; j<48; j++){
