@@ -76,8 +76,8 @@ void CReadModeDlg::DoDataExchange(CDataExchange* pDX)
 	//DDX_Control(pDX, IDC_GAUSS_SUP, gauss_sup);
 	//DDX_Control(pDX, IDC_USE_MEAN, m_use_mean1);
 	//DDX_Control(pDX, IDC_USE_MEAN2, m_use_mean2);
-	DDX_Control(pDX, IDC_USECURV11, m_radio_button_curvature1);
-	DDX_Control(pDX, IDC_USECURV20, m_radio_button_curvature2);
+	//  DDX_Control(pDX, IDC_USECURV11, m_radio_button_curvature1);
+	//  DDX_Control(pDX, IDC_USECURV20, m_radio_button_curvature2);
 	//DDX_Control(pDX, IDC_GAUSS_INF2, gauss_inf2);
 	//DDX_Control(pDX, IDC_GAUSS_SUP2, gauss_sup2);
 	DDX_Control(pDX, IDC_LIST1, m_uselist1);
@@ -117,16 +117,6 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 	ON_EN_KILLFOCUS(IDC_GAUSS_INF2, &CReadModeDlg::OnKillfocusGaussInf2)
 	ON_EN_KILLFOCUS(IDC_GAUSS_SUP2, &CReadModeDlg::OnKillfocusGaussSup2)
 
-	ON_BN_CLICKED(IDC_USECURV11, &CReadModeDlg::OnBnClickedUsecurv11)
-	ON_BN_CLICKED(IDC_USECURV12, &CReadModeDlg::OnBnClickedUsecurv12)
-	ON_BN_CLICKED(IDC_USECURV13, &CReadModeDlg::OnBnClickedUsecurv13)
-	ON_BN_CLICKED(IDC_USECURV14, &CReadModeDlg::OnBnClickedUsecurv14)
-	ON_BN_CLICKED(IDC_USECURV15, &CReadModeDlg::OnBnClickedUsecurv15)
-	ON_BN_CLICKED(IDC_USECURV20, &CReadModeDlg::OnBnClickedUsecurv20)
-	ON_BN_CLICKED(IDC_USECURV21, &CReadModeDlg::OnBnClickedUsecurv21)
-	ON_BN_CLICKED(IDC_USECURV22, &CReadModeDlg::OnBnClickedUsecurv22)
-	ON_BN_CLICKED(IDC_USECURV23, &CReadModeDlg::OnBnClickedUsecurv23)
-	ON_BN_CLICKED(IDC_USECURV24, &CReadModeDlg::OnBnClickedUsecurv24)
 	ON_COMMAND(ID_POLYGONMODE_FILL, &CReadModeDlg::OnPolygonmodeFill1)
 	ON_COMMAND(ID_POLYGONMODE_LINE, &CReadModeDlg::OnPolygonmodeLine1)
 	ON_COMMAND(ID_POLYGONMODE_POINT, &CReadModeDlg::OnPolygonmodePoint1)
@@ -145,7 +135,6 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 
 	ON_LBN_SELCHANGE(IDC_LIST1, &CReadModeDlg::OnLbnSelchangeList1)
 	ON_LBN_SELCHANGE(IDC_LIST2, &CReadModeDlg::OnLbnSelchangeList2)
-	ON_EN_CHANGE(IDC_SIMDEGREE, &CReadModeDlg::OnChangeSimdegree)
 END_MESSAGE_MAP()
 
 
@@ -222,8 +211,7 @@ BOOL CReadModeDlg::OnInitDialog()
 //	CRect rect;
 //	protein1->wnd->GetClientRect(rect);
 ////	trackball = new CTrackBall(rect.Width(), rect.Height(), protein1);
-	m_radio_button_curvature1.SetCheck(true);
-	m_radio_button_curvature2.SetCheck(true);
+
 	int highc=9, lowc=0;
 	for(int i=0; i<48; i++){
 		for(int j=0; j<3; j++)
@@ -334,8 +322,8 @@ void CReadModeDlg::OnBnClickedReadm()
 		protein1->m_rof->use_curvature = curv1;
 	}
 	//SetTimer(1,100,NULL);
-	if(protein1->m_rof && protein2->m_rof)
-		ComputeGreyRelation();
+
+	ComputeGreyRelation();
 	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnBnClickedReadm2()
@@ -367,8 +355,8 @@ void CReadModeDlg::OnBnClickedReadm2()
 		protein2->m_rof->gauss_sup = gauss_superior;
 		protein2->m_rof->use_curvature = curv2;
 	}
-	if(protein1->m_rof && protein2->m_rof)
-		ComputeGreyRelation();
+
+	ComputeGreyRelation();
 	//SetTimer(1,100,NULL);
 	::SetFocus(::GetActiveWindow());
 }
@@ -796,93 +784,93 @@ void CReadModeDlg::OnKillfocusGaussSup2()
 	::SetFocus(::GetActiveWindow());
 
 }
-void CReadModeDlg::OnBnClickedUsecurv11() //use mean 1
-{
-	// TODO: Add your control notification handler code here
-	if(protein1->m_rof!=NULL){
-		protein1->m_rof->use_curvature=MEAN;
-	}
-	// TODO: Add your control notification handler code here
-	curv1=MEAN;
-}
-void CReadModeDlg::OnBnClickedUsecurv12() //use gauss 1
-{
-	// TODO: Add your control notification handler code here
-	if(protein1->m_rof!=NULL){
-		protein1->m_rof->use_curvature=GAUSS;
-	}
-	// TODO: Add your command handler code here
-	curv1=GAUSS;
-}
-void CReadModeDlg::OnBnClickedUsecurv13()  //use shape index 1
-{
-	// TODO: Add your control notification handler code here
-		// TODO: Add your control notification handler code here
-	if(protein1->m_rof!=NULL){
-		protein1->m_rof->use_curvature=SHAPEINDEX;
-	}
-	// TODO: Add your command handler code here
-	curv1=SHAPEINDEX;
-}
-void CReadModeDlg::OnBnClickedUsecurv14() //use none 1
-{
-	// TODO: Add your control notification handler code here
-		// TODO: Add your control notification handler code here
-	if(protein1->m_rof!=NULL){
-		protein1->m_rof->use_curvature=NONE;
-	}
-	// TODO: Add your command handler code here
-	curv1=NONE;
-}
-void CReadModeDlg::OnBnClickedUsecurv15()
-{
-	// TODO: Add your control notification handler code here
-	if(protein1->m_rof!=NULL){
-		protein1->m_rof->use_curvature=SGF;
-	}
-	curv1=SGF;
-}
-void CReadModeDlg::OnBnClickedUsecurv20() //use mean 2
-{
-	// TODO: Add your control notification handler code here
-	if(protein2->m_rof!=NULL){
-		protein2->m_rof->use_curvature=MEAN;
-	}
-	curv2=MEAN;
-}
-void CReadModeDlg::OnBnClickedUsecurv21() //use gauss 2
-{
-	// TODO: Add your control notification handler code here
-	// TODO: Add your command handler code here
-	if(protein2->m_rof!=NULL){
-		protein2->m_rof->use_curvature=GAUSS;
-	}
-	curv2=GAUSS;
-}
-void CReadModeDlg::OnBnClickedUsecurv22() //use shape index 2
-{
-	// TODO: Add your control notification handler code here
-	if(protein2->m_rof!=NULL){
-		protein2->m_rof->use_curvature=SHAPEINDEX;
-	}
-	curv2=SHAPEINDEX;
-}
-void CReadModeDlg::OnBnClickedUsecurv23() //use none 2
-{
-	// TODO: Add your control notification handler code here
-	if(protein2->m_rof!=NULL){
-		protein2->m_rof->use_curvature=NONE;
-	}
-	curv2=NONE;
-}
-void CReadModeDlg::OnBnClickedUsecurv24()
-{
-	// TODO: Add your control notification handler code here
-	if(protein2->m_rof!=NULL){
-		protein2->m_rof->use_curvature=SGF;
-	}
-	curv2=SGF;
-}
+//void CReadModeDlg::OnBnClickedUsecurv11() //use mean 1
+//{
+//	// TODO: Add your control notification handler code here
+//	if(protein1->m_rof!=NULL){
+//		protein1->m_rof->use_curvature=MEAN;
+//	}
+//	// TODO: Add your control notification handler code here
+//	curv1=MEAN;
+//}
+//void CReadModeDlg::OnBnClickedUsecurv12() //use gauss 1
+//{
+//	// TODO: Add your control notification handler code here
+//	if(protein1->m_rof!=NULL){
+//		protein1->m_rof->use_curvature=GAUSS;
+//	}
+//	// TODO: Add your command handler code here
+//	curv1=GAUSS;
+//}
+//void CReadModeDlg::OnBnClickedUsecurv13()  //use shape index 1
+//{
+//	// TODO: Add your control notification handler code here
+//		// TODO: Add your control notification handler code here
+//	if(protein1->m_rof!=NULL){
+//		protein1->m_rof->use_curvature=SHAPEINDEX;
+//	}
+//	// TODO: Add your command handler code here
+//	curv1=SHAPEINDEX;
+//}
+//void CReadModeDlg::OnBnClickedUsecurv14() //use none 1
+//{
+//	// TODO: Add your control notification handler code here
+//		// TODO: Add your control notification handler code here
+//	if(protein1->m_rof!=NULL){
+//		protein1->m_rof->use_curvature=NONE;
+//	}
+//	// TODO: Add your command handler code here
+//	curv1=NONE;
+//}
+//void CReadModeDlg::OnBnClickedUsecurv15()
+//{
+//	// TODO: Add your control notification handler code here
+//	if(protein1->m_rof!=NULL){
+//		protein1->m_rof->use_curvature=SGF;
+//	}
+//	curv1=SGF;
+//}
+//void CReadModeDlg::OnBnClickedUsecurv20() //use mean 2
+//{
+//	// TODO: Add your control notification handler code here
+//	if(protein2->m_rof!=NULL){
+//		protein2->m_rof->use_curvature=MEAN;
+//	}
+//	curv2=MEAN;
+//}
+//void CReadModeDlg::OnBnClickedUsecurv21() //use gauss 2
+//{
+//	// TODO: Add your control notification handler code here
+//	// TODO: Add your command handler code here
+//	if(protein2->m_rof!=NULL){
+//		protein2->m_rof->use_curvature=GAUSS;
+//	}
+//	curv2=GAUSS;
+//}
+//void CReadModeDlg::OnBnClickedUsecurv22() //use shape index 2
+//{
+//	// TODO: Add your control notification handler code here
+//	if(protein2->m_rof!=NULL){
+//		protein2->m_rof->use_curvature=SHAPEINDEX;
+//	}
+//	curv2=SHAPEINDEX;
+//}
+//void CReadModeDlg::OnBnClickedUsecurv23() //use none 2
+//{
+//	// TODO: Add your control notification handler code here
+//	if(protein2->m_rof!=NULL){
+//		protein2->m_rof->use_curvature=NONE;
+//	}
+//	curv2=NONE;
+//}
+//void CReadModeDlg::OnBnClickedUsecurv24()
+//{
+//	// TODO: Add your control notification handler code here
+//	if(protein2->m_rof!=NULL){
+//		protein2->m_rof->use_curvature=SGF;
+//	}
+//	curv2=SGF;
+//}
 
 void CReadModeDlg::OnLbnSelchangeList1()
 {
@@ -1001,6 +989,7 @@ void CReadModeDlg::OnMeancurvatureWithEdgeCurv()
 		protein1->m_rof->EstimatekGkM();
 		protein1->m_rof->EstimateSGF();
 		protein1->m_rof->SimilarityMeasurement();
+		ComputeGreyRelation();
 	}
 }
 void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv()
@@ -1011,6 +1000,7 @@ void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv()
 		protein1->m_rof->EstimatekGkM();
 		protein1->m_rof->EstimateSGF();
 		protein1->m_rof->SimilarityMeasurement();
+		ComputeGreyRelation();
 	}
 }
 void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
@@ -1021,6 +1011,7 @@ void CReadModeDlg::OnMeancurvatureWithEdgeCurv2()
 		protein2->m_rof->EstimatekGkM();
 		protein2->m_rof->EstimateSGF();
 		protein2->m_rof->SimilarityMeasurement();
+		ComputeGreyRelation();
 	}
 }
 void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
@@ -1031,6 +1022,8 @@ void CReadModeDlg::OnMeancurvatureWithoutEdgeCurv2()
 		protein2->m_rof->EstimatekGkM();
 		protein2->m_rof->EstimateSGF();
 		protein2->m_rof->SimilarityMeasurement();
+		ComputeGreyRelation();
+
 	}
 }
 void CReadModeDlg::OnProtein1Resetview()
@@ -1046,58 +1039,50 @@ void CReadModeDlg::OnProtein2Resetview()
 
 void CReadModeDlg::ComputeGreyRelation(void)
 {
-	float x_row[48][48]; float y_row[48][48];
-	float s_row[48]={0}; float t_row[48]={0};
-	float eta_row[48]={0};
-	for(int i=0; i<48; i++)  //columns
-	{
-		for(int j=0; j<48; j++)//rows
+	if(protein1->m_rof && protein2->m_rof){
+		float x_row[48][48]; float y_row[48][48];
+		float s_row[48]={0}; float t_row[48]={0};
+		float eta_row[48]={0};
+		for(int i=0; i<48; i++)  //columns
 		{
-			x_row[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[1][j];
-			y_row[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[1][j];
-			s_row[j]+=x_row[i][j];
-			t_row[j]+=y_row[i][j];
+			for(int j=0; j<48; j++)//rows
+			{
+				x_row[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[1][j];
+				y_row[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[1][j];
+				s_row[j]+=x_row[i][j];
+				t_row[j]+=y_row[i][j];
+			}
 		}
-	}
-	float sum_row=0;
-	for(int i=0; i<48; i++)  
-	{
-		eta_row[i]= (1+ ::abs(s_row[i])+::abs(t_row[i]))/ ( 1 + ::abs(s_row[i])+::abs(t_row[i])+::abs(s_row[i]-t_row[i]));
-		sum_row+=eta_row[i];
-	}
-
-	float x_column[48][48]; float y_column[48][48];
-	float s_column[48]={0}; float t_column[48]={0};
-	float eta_column[48]={0};
-	for(int i=0; i<48; i++)  //columns
-	{
-		for(int j=0; j<48; j++)//rows
+		float sum_row=0;
+		for(int i=0; i<48; i++)  
 		{
-			x_column[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[i][1];
-			y_column[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[i][1];
-			s_column[i]+=x_column[i][j];
-			t_column[i]+=y_column[i][j];
+			eta_row[i]= (1+ ::abs(s_row[i])+::abs(t_row[i]))/ ( 1 + ::abs(s_row[i])+::abs(t_row[i])+::abs(s_row[i]-t_row[i]));
+			sum_row+=eta_row[i];
 		}
-	}
-	float sum_column=0;
-	for(int i=0; i<48; i++)  
-	{
-		eta_column[i]= (1+ ::abs(s_column[i])+::abs(t_column[i]))/ ( 1 + ::abs(s_column[i])+::abs(t_column[i])+::abs(s_column[i]-t_column[i]));
-		sum_column+=eta_column[i];
-	}
-	float degree= 0.5 * (sum_row + sum_column) / 48;
-	CString tmp;
-	tmp.Format(_T("Similarity degree: %f"), degree);	
-	m_simdeg_handle->SetWindowTextW(tmp);
 
+		float x_column[48][48]; float y_column[48][48];
+		float s_column[48]={0}; float t_column[48]={0};
+		float eta_column[48]={0};
+		for(int i=0; i<48; i++)  //columns
+		{
+			for(int j=0; j<48; j++)//rows
+			{
+				x_column[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[i][1];
+				y_column[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[i][1];
+				s_column[i]+=x_column[i][j];
+				t_column[i]+=y_column[i][j];
+			}
+		}
+		float sum_column=0;
+		for(int i=0; i<48; i++)  
+		{
+			eta_column[i]= (1+ ::abs(s_column[i])+::abs(t_column[i]))/ ( 1 + ::abs(s_column[i])+::abs(t_column[i])+::abs(s_column[i]-t_column[i]));
+			sum_column+=eta_column[i];
+		}
+		float degree= 0.5 * (sum_row + sum_column) / 48;
+		CString tmp;
+		tmp.Format(_T("Similarity degree: %f"), degree);	
+		m_simdeg_handle->SetWindowTextW(tmp);
+	}
 }
 
-void CReadModeDlg::OnChangeSimdegree()
-{
-	// TODO:  If this is a RICHEDIT control, the control will not
-	// send this notification unless you override the CDialogEx::OnInitDialog()
-	// function and call CRichEditCtrl().SetEventMask()
-	// with the ENM_CHANGE flag ORed into the mask.
-
-	// TODO:  Add your control notification handler code here
-}
