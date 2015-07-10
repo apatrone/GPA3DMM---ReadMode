@@ -71,6 +71,7 @@ public:
 	CWnd *m_gauss_sup_handle;
 	CWnd *m_gauss_inf_handle2;
 	CWnd *m_gauss_sup_handle2;
+	CWnd *m_clusters_handle;
 	CEdit m_info;
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
@@ -84,6 +85,7 @@ public:
 	afx_msg void OnBnClickedCheck1();
 	afx_msg void OnBnClickedCheck2();
 	afx_msg void OnEnChangeInfo();
+	void LloydClusters();
 	CButton m_checkbox1;
 	CButton m_checkbox2;
 	//CEdit gauss_inf;
@@ -102,8 +104,8 @@ public:
 	afx_msg void OnChangeGaussInf();
 //	afx_msg void OnClickedUseMean();
 //	afx_msg void OnClickedUseMean2();
-	afx_msg void OnUseGauss();
-	afx_msg void OnUseGauss2();
+//	afx_msg void OnUseGauss();
+//	afx_msg void OnUseGauss2();
 	CButton m_use_mean1;
 	CButton m_use_mean2;
 //	afx_msg void OnClickedUseNone();
@@ -150,4 +152,5 @@ public:
 	GLfloat **rgb;
 	int cluster_number;
 //	afx_msg void OnChangeSimdegree();
+	afx_msg void OnKillfocusClusters();
 };

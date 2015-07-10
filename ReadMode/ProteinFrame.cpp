@@ -33,6 +33,7 @@ ProteinFrame::ProteinFrame(void)
 	m_useNE=false;
 	previousTime=::GetTickCount();
 	polygon_mode=GL_FILL;
+	critical=false;
 }
 
 int ProteinFrame::LoadProtein(char *path){
@@ -62,11 +63,8 @@ void* MyThread(ProteinFrame *p)
 
 	while(p->kill_thread==false){
 		bool flag=::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
-		if(flag==true)
-			int i=1;
-		else
-			int i=1;
-		//if(p->flag){
+		if(p->flag){
+			
 			glDrawBuffer(GL_FRONT_AND_BACK);
 			::glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 			::glLoadIdentity();
@@ -83,13 +81,16 @@ void* MyThread(ProteinFrame *p)
 			::glColor3f(0.0f,1.0f,1.0f);
 			glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
 			glEnable(GL_COLOR_MATERIAL);
+			p->critical=true;
 			p->m_rof->Draw();
+			p->critical=false;
 			::glPopMatrix();
 			::glEnable(GL_DEPTH_TEST);
 			::glFlush();//::glFinish();
 			::SwapBuffers(p->pDC->m_hDC);
 			glDrawBuffer(GL_BACK);
-	//	}		
+			
+		}		
 	}
 	p->kill_thread=false;
 	p->flag_threadCreated=false;

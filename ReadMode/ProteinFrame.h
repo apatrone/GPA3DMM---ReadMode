@@ -60,5 +60,5 @@ public:
 	std::thread t;
 	bool m_useNE; //normal estimation
 	GLenum polygon_mode;
-
+	bool critical;
 };

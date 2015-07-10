@@ -106,7 +106,7 @@ public:
 	inline int nearest(point pt, point cent, int n_cluster, double *d2);
 	void kpp(point pts, int len, point cent, int n_cent);
 	point lloyd(point pts, int len, int n_cluster);
-
+	void AllocRGB(void);
 	//------------------------------
 	char  m_FileName[256];
 	int m_nCount;
@@ -138,5 +138,6 @@ public:
 	float **feature_matrix;
 	GLfloat **rgb;
 	int cluster_number;
+
 };
 

@@ -10,7 +10,7 @@
 #include <list>
 
 ReadOBJFile::ReadOBJFile(bool useNE)
-{
+{	
 	memset(this->m_FileName,0,256);
 	m_nCount=0;
 	lastj=0;
@@ -25,12 +25,7 @@ ReadOBJFile::ReadOBJFile(bool useNE)
 	use_curvature=MEAN;
 	use_ridgeorvalley=true;
 	cluster_number=48;
-	rgb=new GLfloat *[cluster_number];
-	rgb[0] = new GLfloat[3 * cluster_number];
-	for (int i = 1; i < cluster_number; ++i)
-	 rgb[i] = rgb[0]+i*3;
-	feature_matrix= new float *[cluster_number];
-	for(int i=0; i <cluster_number; i++) feature_matrix[i]=new float[cluster_number];
+	AllocRGB();
 }
 ReadOBJFile::~ReadOBJFile(void)
 {
@@ -47,6 +42,7 @@ void ReadOBJFile::GetInfo()
 	memset(MtlName,0,256);
 	size_m_v=0;
 	int nMtl=0;
+
 	while (1)
 	{
 		memset(str,0,256);
@@ -635,8 +631,8 @@ bool ReadOBJFile::ReadFile(char *FileName)
 	GetCluster();
 	EstimatekGkM();
 	EstimateSGF();
-	GetCluster(true);
-	SimilarityMeasurement();
+	/*GetCluster(true);
+	SimilarityMeasurement();*/
 }
 bool ReadOBJFile::ReadLine(FILE *fp,char *str)
 {
@@ -663,22 +659,14 @@ void ReadOBJFile::Draw()
 	//print colours
 	//CString str; str="";
 	//char* s= new char[50];
-	////print clusters
-	//for(int i=0; i<cluster_number; i++){
-	//	for(int j=0; j<3; j++){
-	//		sprintf(s, "%f", rgb[i][j]);
-	//		str+=s;
-	//		if(j==2)
-	//			str+="\n";
-	//		else
-	//			str+="\t";
-	//	}
-
+	//for(int i=0; i<cluster_number;i++){
+	//	sprintf(s, "%f \t %f \t %f\n", rgb[i][0], rgb[i][1], rgb[i][2]);
+	//	str+=s;
 	//}
 
 	float comp;
 	::glBegin(GL_TRIANGLES);
-#pragma parallel for private(comp)
+	#pragma parallel for private(comp)
 	for(int i=0; i<vertexIndices.size(); i++)
 	{	
 		if(use_curvature==SHAPEINDEX){
@@ -746,7 +734,6 @@ void ReadOBJFile::Draw()
 	}
 
 	::glEnd();
-		
 }	
 int ReadOBJFile::EstimateNormals(void)
 {
@@ -850,15 +837,12 @@ void ReadOBJFile::GetCluster(bool lloyd){
 			cluster_indices_lloyd[i]=OrderCluster(cluster_indices_lloyd[i]);
 		}*/
 		//create array of 48 groups: each column contains vertices of same group
-		#pragma omp parallel for
-		for(int i=0; i<cluster_number; i++){
-			#pragma omp parallel for
-			for (int j = 0; j < size_m_v; j++){
-				if(v[j].group == i){
-					cluster_indices_lloyd[i].push_back(v[j].original_index);
-					m_vcalc[v[j].original_index].group=i;
-				}
-			}
+		//#pragma omp parallel for
+		for (int j = 0; j < size_m_v; j++){
+			if(v[j].group>47)
+				int r=1;
+			cluster_indices_lloyd[v[j].group].push_back(v[j].original_index);
+			m_vcalc[v[j].original_index].group=v[j].group;			
 		}
 		
 		//CString str; str="";
@@ -1537,3 +1521,20 @@ point ReadOBJFile::lloyd(point pts, int len, int n_cluster)
 	return cent;
 }
  
+void ReadOBJFile::AllocRGB(void){
+	if(init)
+	{
+		/*delete [] rgb[0];/ //heap corruption error :(
+		delete [] rgb;*/ 
+		delete [] feature_matrix[0];
+		delete [] feature_matrix;
+	}
+	rgb=new GLfloat *[cluster_number];
+	rgb[0] = new GLfloat[3 * cluster_number];
+	for (int i = 1; i < cluster_number; ++i)
+		rgb[i] = rgb[0]+i*3;
+
+
+	feature_matrix= new float *[cluster_number];
+	for(int i=0; i <cluster_number; i++) feature_matrix[i]=new float[cluster_number];
+}

@@ -12,7 +12,7 @@
 #include <GL/glut.h>
 #include "Resource.h"
 #include <math.h>
-#include <cstring>
+#include <string>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -135,6 +135,7 @@ BEGIN_MESSAGE_MAP(CReadModeDlg, CDialogEx)
 
 	ON_LBN_SELCHANGE(IDC_LIST1, &CReadModeDlg::OnLbnSelchangeList1)
 	ON_LBN_SELCHANGE(IDC_LIST2, &CReadModeDlg::OnLbnSelchangeList2)
+	ON_EN_KILLFOCUS(IDC_CLUSTERS, &CReadModeDlg::OnKillfocusClusters)
 END_MESSAGE_MAP()
 
 
@@ -183,6 +184,7 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_gauss_sup_handle=GetDlgItem(IDC_GAUSS_SUP);
 	m_gauss_inf_handle2=GetDlgItem(IDC_GAUSS_INF2);
 	m_gauss_sup_handle2=GetDlgItem(IDC_GAUSS_SUP2);
+	m_clusters_handle=GetDlgItem(IDC_CLUSTERS);
 	::SetFocus(::GetActiveWindow());
 	gauss_inferior=10;
 	gauss_superior=60;
@@ -192,6 +194,7 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_gauss_sup_handle->SetWindowTextW(_T("60"));
 	m_gauss_inf_handle2->SetWindowTextW(_T("10"));
 	m_gauss_sup_handle2->SetWindowTextW(_T("60"));
+	m_clusters_handle->SetWindowTextW(_T("48"));
 	curv1=MEAN;
 	curv2=MEAN;
 	m_uselist1.AddString(L"Mean curvature");
@@ -213,10 +216,6 @@ BOOL CReadModeDlg::OnInitDialog()
 //	protein1->wnd->GetClientRect(rect);
 ////	trackball = new CTrackBall(rect.Width(), rect.Height(), protein1);
 	cluster_number=48;
-	rgb=new GLfloat *[cluster_number];
-	rgb[0] = new GLfloat[3 * cluster_number];
-	for (int i = 1; i < cluster_number; ++i)
-	 rgb[i] = rgb[0]+i*3;
 
 	AssignRandomColours();
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -302,14 +301,17 @@ void CReadModeDlg::OnBnClickedReadm()
 
 	if(protein1->m_rof==NULL){
 		protein1->LoadProtein(CW2A(pDlg->GetPathName()));
-		memcpy(protein1->m_rof->rgb,this->rgb, sizeof(float)* 3  * cluster_number);
+		LloydClusters();
+		memcpy(protein1->m_rof->rgb,this->rgb, sizeof(rgb)*cluster_number);
 		protein1->Draw();
 		m_init=true;
 	}
 	else{
 		protein1->kill_thread=true;
 		while(protein1->kill_thread==true){}
-		protein1->LoadProtein(CW2A(pDlg->GetPathName()));		
+		protein1->LoadProtein(CW2A(pDlg->GetPathName()));
+		LloydClusters();
+		memcpy(protein1->m_rof->rgb,this->rgb, sizeof(rgb)*cluster_number);
 		protein1->Draw();
 	}
 	if(protein1->m_rof->vn==false){  //if no normal information in file, grey out checkbox
@@ -335,15 +337,18 @@ void CReadModeDlg::OnBnClickedReadm2()
 		return;
 
 	if(protein2->m_rof==NULL){
-		protein2->LoadProtein(CW2A(pDlg->GetPathName()));	
-		memcpy(protein2->m_rof->rgb,this->rgb, sizeof(float)* 3  * cluster_number);
+		protein2->LoadProtein(CW2A(pDlg->GetPathName()));
+		LloydClusters();
+		memcpy(protein2->m_rof->rgb,this->rgb, sizeof(float)* cluster_number);
 		protein2->Draw();
 		m_init=true;
 	}
 	else{
 		protein2->kill_thread=true;
 		while(protein2->kill_thread==true){}
-		protein2->LoadProtein(CW2A(pDlg->GetPathName()));		
+		protein2->LoadProtein(CW2A(pDlg->GetPathName()));
+		LloydClusters();
+		memcpy(protein2->m_rof->rgb,this->rgb, sizeof(rgb)*cluster_number);
 		protein2->Draw();
 	}
 	if(protein2->m_rof->vn==false){  //if no normal information in file, grey out checkbox
@@ -659,7 +664,8 @@ BOOL CReadModeDlg::PreTranslateMessage(MSG* pMsg)
 
 	if(pMsg->message==WM_KEYDOWN){
 		if(GetFocus()!= GetDlgItem(IDC_GAUSS_INF )&& GetFocus()!= GetDlgItem(IDC_GAUSS_SUP )
-			&&  GetFocus()!= GetDlgItem(IDC_GAUSS_INF2 )&& GetFocus()!= GetDlgItem(IDC_GAUSS_SUP2 )){
+			&&  GetFocus()!= GetDlgItem(IDC_GAUSS_INF2 )&& GetFocus()!= GetDlgItem(IDC_GAUSS_SUP2)
+			&&  GetFocus()!= GetDlgItem(IDC_CLUSTERS)){
 			if(protein1->m_rof!=NULL &&(m_move==1 || m_move==2) ){
 				protein1->KeyInput(pMsg->wParam, pMsg->lParam);
 			}
@@ -786,93 +792,6 @@ void CReadModeDlg::OnKillfocusGaussSup2()
 	::SetFocus(::GetActiveWindow());
 
 }
-//void CReadModeDlg::OnBnClickedUsecurv11() //use mean 1
-//{
-//	// TODO: Add your control notification handler code here
-//	if(protein1->m_rof!=NULL){
-//		protein1->m_rof->use_curvature=MEAN;
-//	}
-//	// TODO: Add your control notification handler code here
-//	curv1=MEAN;
-//}
-//void CReadModeDlg::OnBnClickedUsecurv12() //use gauss 1
-//{
-//	// TODO: Add your control notification handler code here
-//	if(protein1->m_rof!=NULL){
-//		protein1->m_rof->use_curvature=GAUSS;
-//	}
-//	// TODO: Add your command handler code here
-//	curv1=GAUSS;
-//}
-//void CReadModeDlg::OnBnClickedUsecurv13()  //use shape index 1
-//{
-//	// TODO: Add your control notification handler code here
-//		// TODO: Add your control notification handler code here
-//	if(protein1->m_rof!=NULL){
-//		protein1->m_rof->use_curvature=SHAPEINDEX;
-//	}
-//	// TODO: Add your command handler code here
-//	curv1=SHAPEINDEX;
-//}
-//void CReadModeDlg::OnBnClickedUsecurv14() //use none 1
-//{
-//	// TODO: Add your control notification handler code here
-//		// TODO: Add your control notification handler code here
-//	if(protein1->m_rof!=NULL){
-//		protein1->m_rof->use_curvature=NONE;
-//	}
-//	// TODO: Add your command handler code here
-//	curv1=NONE;
-//}
-//void CReadModeDlg::OnBnClickedUsecurv15()
-//{
-//	// TODO: Add your control notification handler code here
-//	if(protein1->m_rof!=NULL){
-//		protein1->m_rof->use_curvature=SGF;
-//	}
-//	curv1=SGF;
-//}
-//void CReadModeDlg::OnBnClickedUsecurv20() //use mean 2
-//{
-//	// TODO: Add your control notification handler code here
-//	if(protein2->m_rof!=NULL){
-//		protein2->m_rof->use_curvature=MEAN;
-//	}
-//	curv2=MEAN;
-//}
-//void CReadModeDlg::OnBnClickedUsecurv21() //use gauss 2
-//{
-//	// TODO: Add your control notification handler code here
-//	// TODO: Add your command handler code here
-//	if(protein2->m_rof!=NULL){
-//		protein2->m_rof->use_curvature=GAUSS;
-//	}
-//	curv2=GAUSS;
-//}
-//void CReadModeDlg::OnBnClickedUsecurv22() //use shape index 2
-//{
-//	// TODO: Add your control notification handler code here
-//	if(protein2->m_rof!=NULL){
-//		protein2->m_rof->use_curvature=SHAPEINDEX;
-//	}
-//	curv2=SHAPEINDEX;
-//}
-//void CReadModeDlg::OnBnClickedUsecurv23() //use none 2
-//{
-//	// TODO: Add your control notification handler code here
-//	if(protein2->m_rof!=NULL){
-//		protein2->m_rof->use_curvature=NONE;
-//	}
-//	curv2=NONE;
-//}
-//void CReadModeDlg::OnBnClickedUsecurv24()
-//{
-//	// TODO: Add your control notification handler code here
-//	if(protein2->m_rof!=NULL){
-//		protein2->m_rof->use_curvature=SGF;
-//	}
-//	curv2=SGF;
-//}
 
 void CReadModeDlg::OnLbnSelchangeList1()
 {
@@ -1115,6 +1034,14 @@ void CReadModeDlg::AssignRandomColours(void){
 		rgb[i][j]=(rand () % (highc - lowc + 1) + lowc)/10.0;
 		}
 	}*/
+
+	//first alloc array
+	rgb=new GLfloat *[cluster_number];
+	rgb[0] = new GLfloat[3 * cluster_number];
+	for (int i = 1; i < cluster_number; ++i)
+	 rgb[i] = rgb[0]+i*3;
+
+	//assign colours
 	float h, s,v;//hue, saturation, value
 	int h_i;
 	float f,p,t,q;
@@ -1137,4 +1064,50 @@ void CReadModeDlg::AssignRandomColours(void){
 			if( h_i==5){rgb[i][0]=v; rgb[i][1]=p; rgb[i][2]=q;}
 		
 	}
+	//print colours
+	/*CString str; str="";
+	char *z=new char[50];
+	for(int i=0; i<cluster_number;i++)
+	{
+		sprintf(z, "%f \t %f \t %f\n", rgb[i][0], rgb[i][1], rgb[i][2]);
+		str+=z;
+	}*/
 }
+
+void CReadModeDlg::OnKillfocusClusters()
+{
+	// TODO: Add your control notification handler code here
+	CString clusters;
+	m_clusters_handle->GetWindowTextW(clusters);
+	cluster_number= ::StrToIntW(clusters);
+	delete [] rgb[0];
+	delete [] rgb;
+	AssignRandomColours();//reassign colours to the new rgb array
+	LloydClusters();
+
+}
+ void CReadModeDlg::LloydClusters(void)
+ {	
+	 if(protein1->m_rof)
+	{
+		protein1->flag=false; while(protein1->critical==true){}
+		protein1->m_rof->cluster_number=cluster_number;
+		protein1->m_rof->AllocRGB();
+		memcpy(protein1->m_rof->rgb,this->rgb, sizeof(float)* cluster_number);
+		protein1->m_rof->GetCluster(true);
+		protein1->m_rof->SimilarityMeasurement();
+		protein1->flag=true;
+	}
+	if(protein2->m_rof)
+	{
+		protein2->flag=false; while(protein2->critical==true){}
+		protein2->m_rof->cluster_number=cluster_number;
+		protein2->m_rof->AllocRGB();
+		memcpy(protein2->m_rof->rgb,this->rgb, sizeof(float)* cluster_number);
+		protein2->m_rof->GetCluster(true);
+		protein2->m_rof->SimilarityMeasurement();
+		protein2->flag=true;
+	}
+	if(protein1->m_rof && protein2->m_rof)
+		ComputeGreyRelation();
+ }
