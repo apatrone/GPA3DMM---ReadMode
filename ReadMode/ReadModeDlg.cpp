@@ -17,7 +17,7 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
+#define GOLDEN_RATIO_CONJUGATE 0.618033988749895
 // CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialogEx
@@ -208,15 +208,17 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_uselist2.AddString(L"LLoyd Clusters");
 	m_uselist2.AddString(L"None");
 	m_uselist2.SetCurSel(0);
+	
 //	CRect rect;
 //	protein1->wnd->GetClientRect(rect);
 ////	trackball = new CTrackBall(rect.Width(), rect.Height(), protein1);
+	cluster_number=48;
+	rgb=new GLfloat *[cluster_number];
+	rgb[0] = new GLfloat[3 * cluster_number];
+	for (int i = 1; i < cluster_number; ++i)
+	 rgb[i] = rgb[0]+i*3;
 
-	int highc=9, lowc=0;
-	for(int i=0; i<48; i++){
-		for(int j=0; j<3; j++)
-		rgb[i][j]=(rand () % (highc - lowc + 1) + lowc)/10.0;
-	}
+	AssignRandomColours();
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 void CReadModeDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -300,7 +302,7 @@ void CReadModeDlg::OnBnClickedReadm()
 
 	if(protein1->m_rof==NULL){
 		protein1->LoadProtein(CW2A(pDlg->GetPathName()));
-		memcpy(protein1->m_rof->rgb,this->rgb, sizeof(this->rgb));
+		memcpy(protein1->m_rof->rgb,this->rgb, sizeof(float)* 3  * cluster_number);
 		protein1->Draw();
 		m_init=true;
 	}
@@ -334,7 +336,7 @@ void CReadModeDlg::OnBnClickedReadm2()
 
 	if(protein2->m_rof==NULL){
 		protein2->LoadProtein(CW2A(pDlg->GetPathName()));	
-		memcpy(protein2->m_rof->rgb,this->rgb, sizeof(this->rgb));
+		memcpy(protein2->m_rof->rgb,this->rgb, sizeof(float)* 3  * cluster_number);
 		protein2->Draw();
 		m_init=true;
 	}
@@ -1040,12 +1042,22 @@ void CReadModeDlg::OnProtein2Resetview()
 void CReadModeDlg::ComputeGreyRelation(void)
 {
 	if(protein1->m_rof && protein2->m_rof){
-		float x_row[48][48]; float y_row[48][48];
-		float s_row[48]={0}; float t_row[48]={0};
-		float eta_row[48]={0};
-		for(int i=0; i<48; i++)  //columns
+		//float x_row[48][48]; float y_row[48][48];
+		//float s_row[48]={0}; float t_row[48]={0};
+		//float eta_row[48]={0};
+		float **x_row = new float*[cluster_number],**y_row = new float*[cluster_number];
+		float *s_row=new float[cluster_number], *t_row=new float[cluster_number];
+		float *eta_row=new float[cluster_number];
+
+		for(int i =0; i<cluster_number; i++){
+			x_row[i]=new float[cluster_number];
+			y_row[i]=new float[cluster_number];
+			s_row[i]=t_row[i]=eta_row[i]=0;
+		}
+
+		for(int i=0; i<cluster_number; i++)  //columns
 		{
-			for(int j=0; j<48; j++)//rows
+			for(int j=0; j<cluster_number; j++)//rows
 			{
 				x_row[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[1][j];
 				y_row[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[1][j];
@@ -1054,18 +1066,27 @@ void CReadModeDlg::ComputeGreyRelation(void)
 			}
 		}
 		float sum_row=0;
-		for(int i=0; i<48; i++)  
+		for(int i=0; i<cluster_number; i++)  
 		{
 			eta_row[i]= (1+ ::abs(s_row[i])+::abs(t_row[i]))/ ( 1 + ::abs(s_row[i])+::abs(t_row[i])+::abs(s_row[i]-t_row[i]));
 			sum_row+=eta_row[i];
 		}
-
+/*
 		float x_column[48][48]; float y_column[48][48];
 		float s_column[48]={0}; float t_column[48]={0};
-		float eta_column[48]={0};
-		for(int i=0; i<48; i++)  //columns
+		float eta_column[48]={0};*/
+		float **x_column = new float*[cluster_number],**y_column = new float*[cluster_number];
+		float *s_column=new float[cluster_number], *t_column=new float[cluster_number];
+		float *eta_column=new float[cluster_number];
+
+		for(int i =0; i<cluster_number; i++){
+			x_column[i]=new float[cluster_number];
+			y_column[i]=new float[cluster_number];
+			s_column[i]=t_column[i]=eta_column[i]=0;
+		}
+		for(int i=0; i<cluster_number; i++)  //columns
 		{
-			for(int j=0; j<48; j++)//rows
+			for(int j=0; j<cluster_number; j++)//rows
 			{
 				x_column[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[i][1];
 				y_column[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[i][1];
@@ -1074,15 +1095,46 @@ void CReadModeDlg::ComputeGreyRelation(void)
 			}
 		}
 		float sum_column=0;
-		for(int i=0; i<48; i++)  
+		for(int i=0; i<cluster_number; i++)  
 		{
 			eta_column[i]= (1+ ::abs(s_column[i])+::abs(t_column[i]))/ ( 1 + ::abs(s_column[i])+::abs(t_column[i])+::abs(s_column[i]-t_column[i]));
 			sum_column+=eta_column[i];
 		}
-		float degree= 0.5 * (sum_row + sum_column) / 48;
+		float degree= 0.5 * (sum_row + sum_column) / cluster_number;
 		CString tmp;
 		tmp.Format(_T("Similarity degree: %f"), degree);	
 		m_simdeg_handle->SetWindowTextW(tmp);
 	}
 }
 
+void CReadModeDlg::AssignRandomColours(void){
+	//int highc=9, lowc=0;
+	/*for(int i=0; i<cluster_number; i++){
+		for(int j=0; j<3; j++)
+		{
+		rgb[i][j]=(rand () % (highc - lowc + 1) + lowc)/10.0;
+		}
+	}*/
+	float h, s,v;//hue, saturation, value
+	int h_i;
+	float f,p,t,q;
+	for(int i=0; i<cluster_number; i++){
+			h= ((double) rand() / (RAND_MAX));  //Random colour between 0 and 1
+			s=0.95;
+			v=0.99; 
+			h += GOLDEN_RATIO_CONJUGATE;
+			h=::fmod((float)h,(float)1.0);
+			h_i = (h*6);
+			f = h*6 - h_i;
+			p = v * (1 - s);
+			q = v * (1 - f*s);
+			t = v * (1 - (1 - f) * s);
+			if( h_i==0){rgb[i][0]=v; rgb[i][1]=t; rgb[i][2]=p;}
+			if( h_i==1){rgb[i][0]=q; rgb[i][1]=v; rgb[i][2]=p;}
+			if( h_i==2){rgb[i][0]=p; rgb[i][1]=v; rgb[i][2]=t;}
+			if( h_i==3){rgb[i][0]=p; rgb[i][1]=q; rgb[i][2]=v;}
+			if( h_i==4){rgb[i][0]=t; rgb[i][1]=p; rgb[i][2]=v;}
+			if( h_i==5){rgb[i][0]=v; rgb[i][1]=p; rgb[i][2]=q;}
+		
+	}
+}

@@ -24,6 +24,13 @@ ReadOBJFile::ReadOBJFile(bool useNE)
 	gauss_sup=60;
 	use_curvature=MEAN;
 	use_ridgeorvalley=true;
+	cluster_number=48;
+	rgb=new GLfloat *[cluster_number];
+	rgb[0] = new GLfloat[3 * cluster_number];
+	for (int i = 1; i < cluster_number; ++i)
+	 rgb[i] = rgb[0]+i*3;
+	feature_matrix= new float *[cluster_number];
+	for(int i=0; i <cluster_number; i++) feature_matrix[i]=new float[cluster_number];
 }
 ReadOBJFile::~ReadOBJFile(void)
 {
@@ -653,6 +660,22 @@ bool ReadOBJFile::ReadLine(FILE *fp,char *str)
 }
 void ReadOBJFile::Draw()
 {
+	//print colours
+	//CString str; str="";
+	//char* s= new char[50];
+	////print clusters
+	//for(int i=0; i<cluster_number; i++){
+	//	for(int j=0; j<3; j++){
+	//		sprintf(s, "%f", rgb[i][j]);
+	//		str+=s;
+	//		if(j==2)
+	//			str+="\n";
+	//		else
+	//			str+="\t";
+	//	}
+
+	//}
+
 	float comp;
 	::glBegin(GL_TRIANGLES);
 #pragma parallel for private(comp)
@@ -814,9 +837,9 @@ void ReadOBJFile::GetCluster(bool lloyd){
 	}
 	else{ //use lloyd clustering
 		//cluster_indices_lloyd=new std::vector<int>[size_m_v]();
-		cluster_indices_lloyd=new std::vector<int>[48]();
+		cluster_indices_lloyd=new std::vector<int>[cluster_number]();
 		point v = gen_xy();
-		clusters = this->lloyd(v, size_m_v,48);
+		clusters = this->lloyd(v, size_m_v,cluster_number);
 		//create array of size_m_v data points containing for vi all the vertices in its cluster
 		/*for(int i=0; i<size_m_v; i++){ //for each vertex
 			for (int j = 0; j < size_m_v; j++){
@@ -828,7 +851,7 @@ void ReadOBJFile::GetCluster(bool lloyd){
 		}*/
 		//create array of 48 groups: each column contains vertices of same group
 		#pragma omp parallel for
-		for(int i=0; i<48; i++){
+		for(int i=0; i<cluster_number; i++){
 			#pragma omp parallel for
 			for (int j = 0; j < size_m_v; j++){
 				if(v[j].group == i){
@@ -841,7 +864,7 @@ void ReadOBJFile::GetCluster(bool lloyd){
 		//CString str; str="";
 		//char* s= new char[50];
 		////print clusters
-		//for(int i=0; i<48; i++){
+		//for(int i=0; i<cluster_number; i++){
 		//	for(int j=0; j<cluster_indices_lloyd[i].size(); j++){
 		//		sprintf(s, "%d", cluster_indices_lloyd[i][j]);
 		//		str+=s;
@@ -850,14 +873,9 @@ void ReadOBJFile::GetCluster(bool lloyd){
 		//		else
 		//			str+="\t";
 		//	}
-		//
+
 		//}
-		//assign random colours to group
-
-		
 	}
-
-
 }
 void ReadOBJFile::EstimatekGkM(void)
 { 
@@ -1286,14 +1304,18 @@ bool ReadOBJFile::Collinear(glm::vec3 v1,glm::vec3 v2)
 /////////////
 void ReadOBJFile::SimilarityMeasurement(void)
 {
-	float matrix[48][2]; //matrix 
-	float matrix_t[2][48]; //transposed matrix
-	float matrix_mult[48][48]; //transposed matrix * matrix
-	float *mean_shape_index=new float[48];//to store the shape index of the 48 data points
-	float *mean_sgf=new float[48]; //to store the SGF of the 48 data points
+	//float matrix[48][2]; //matrix 
+	//float matrix_t[2][48]; //transposed matrix
+	//float matrix_mult[48][48]; //transposed matrix * matrix
+	float **matrix=new float*[cluster_number],  **matrix_t=new float*[2],  **matrix_mult=new float*[cluster_number];
+	for(int i=0; i<cluster_number; i++) {matrix[i]=new float[2]; matrix_mult[i]=new float[cluster_number];}
+	for(int i=0; i<2; i++){ matrix_t[i]=new float[cluster_number];}
+	
+	float *mean_shape_index=new float[cluster_number];//to store the shape index of the 48 data points
+	float *mean_sgf=new float[cluster_number]; //to store the SGF of the 48 data points
 	
 	//compute matrix and transposed matrix 
-	for(int i=0; i<48; i++){
+	for(int i=0; i<cluster_number; i++){
 		float sum_si=0;
 		float sum_sgf=0;
 		for(int j=0; j<cluster_indices_lloyd[i].size();j++){
@@ -1310,8 +1332,8 @@ void ReadOBJFile::SimilarityMeasurement(void)
 	}
 
 	//compute transposed matrix * matrix
-	for(int i=0; i<48; i++){
-		for(int j=0; j<48; j++){
+	for(int i=0; i<cluster_number; i++){
+		for(int j=0; j<cluster_number; j++){
 		feature_matrix[i][j]=0;
 			for(int k=0; k<2; k++){
 				feature_matrix[i][j] +=  matrix_t[k][j] * matrix[i][k];
@@ -1323,10 +1345,10 @@ void ReadOBJFile::SimilarityMeasurement(void)
 	float flt;
 	CString str;str= "["; 
 	char* s= new char[10];
-	for(int i=0; i<48; i++){ //rows
+	for(int i=0; i<cluster_number; i++){ //rows
 		if(i!=0)
 			str+="; ";
-		for(int j=0; j<48; j++){ //columns
+		for(int j=0; j<cluster_number; j++){ //columns
 			flt=feature_matrix[j][i];
 			sprintf(s, "%.4g", flt );  
 			str+=s;
@@ -1337,7 +1359,7 @@ void ReadOBJFile::SimilarityMeasurement(void)
 	str+="]";
 	////string for matrix_t
 	//str="[";
-	//for(int i=0; i<48; i++){ //rows
+	//for(int i=0; i<cluster_number; i++){ //rows
 	//	if(i!=0)
 	//		str+="; ";
 	//	for(int j=0; j<2; j++){  //columns
@@ -1354,7 +1376,7 @@ void ReadOBJFile::SimilarityMeasurement(void)
 	//for(int i=0; i<2; i++){ //rows
 	//	if(i!=0)
 	//		str+="; ";
-	//	for(int j=0; j<48; j++){  //columns
+	//	for(int j=0; j<cluster_number; j++){  //columns
 	//		flt=matrix[j][i];
 	//		sprintf(s, "%.4g", flt );  
 	//		str+=s;
@@ -1460,7 +1482,7 @@ point ReadOBJFile::lloyd(point pts, int len, int n_cluster)
 	point cent =new point_t[n_cluster], p , c;
  
 	/* assign init grouping randomly */
-	//for_len p->group = j % n_cluster;
+	//for_len p->group = j % n_cluster;  //does not work ->> #IND00 on some values 
 
 	/* or call k++ init */
 	kpp(pts, len, cent, n_cluster);

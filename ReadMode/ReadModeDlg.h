@@ -140,13 +140,14 @@ public:
 	afx_msg void OnEnChangeGaussInf2();
 	afx_msg void OnProtein1Resetview();
 	afx_msg void OnProtein2Resetview();
-
+	void AssignRandomColours();
 	
 	CListBox m_uselist1;
 	afx_msg void OnLbnSelchangeList1();
 	CListBox m_uselist2;
 	afx_msg void OnLbnSelchangeList2();
 	void ComputeGreyRelation(void);
-	GLfloat rgb[48][3];
+	GLfloat **rgb;
+	int cluster_number;
 //	afx_msg void OnChangeSimdegree();
 };

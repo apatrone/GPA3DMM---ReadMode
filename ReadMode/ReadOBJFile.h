@@ -133,7 +133,10 @@ public:
 	Curvature use_curvature;
 	bool use_ridgeorvalley;
 	point clusters;
-	float feature_matrix[48][48];
-	GLfloat rgb[48][3];
+	/*float feature_matrix[48][48];
+	GLfloat rgb[48][3];*/
+	float **feature_matrix;
+	GLfloat **rgb;
+	int cluster_number;
 };
 
