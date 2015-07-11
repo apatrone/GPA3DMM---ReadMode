@@ -11,11 +11,9 @@ no doc!!  had to rewrite functions, helped me understand the math
 
 careful,did not take care of the case of isolated vertices!!
 the problem is, some files are quads and the prog does not work on these files -.-
+message of quad files? or compute?
 
-prob with lloyd clustering:
-the centroid does not correspond to an existing data point; therefor the SGF and shape index don't exist for these clusters
-either: re compute all the SGF and shape index  (so basically recompute everything)
-or find data point closest to centroid (not reliable)/makes no sense
+the similarity if only 1 cluster = 1; even if different objects
 
-to recompute everything, we need not the centroids, but the groups of points
-(currently lloyd returns an array with coordinates of centroids and size of their group
+
+

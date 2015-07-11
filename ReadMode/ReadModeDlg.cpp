@@ -201,14 +201,14 @@ BOOL CReadModeDlg::OnInitDialog()
 	m_uselist1.AddString(L"Gaussian curvature");
 	m_uselist1.AddString(L"Shape Index");
 	m_uselist1.AddString(L"Salient Geometric Features");
-	m_uselist1.AddString(L"LLoyd Clusters");
+	m_uselist1.AddString(L"LLoyd clusters");
 	m_uselist1.AddString(L"None");
 	m_uselist1.SetCurSel(0);
 	m_uselist2.AddString(L"Mean curvature");
 	m_uselist2.AddString(L"Gaussian curvature");
 	m_uselist2.AddString(L"Shape Index");
 	m_uselist2.AddString(L"Salient Geometric Features");
-	m_uselist2.AddString(L"LLoyd Clusters");
+	m_uselist2.AddString(L"LLoyd clusters");
 	m_uselist2.AddString(L"None");
 	m_uselist2.SetCurSel(0);
 	
@@ -978,8 +978,8 @@ void CReadModeDlg::ComputeGreyRelation(void)
 		{
 			for(int j=0; j<cluster_number; j++)//rows
 			{
-				x_row[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[1][j];
-				y_row[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[1][j];
+				x_row[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[0][j];
+				y_row[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[0][j];
 				s_row[j]+=x_row[i][j];
 				t_row[j]+=y_row[i][j];
 			}
@@ -1007,8 +1007,8 @@ void CReadModeDlg::ComputeGreyRelation(void)
 		{
 			for(int j=0; j<cluster_number; j++)//rows
 			{
-				x_column[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[i][1];
-				y_column[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[i][1];
+				x_column[i][j]=protein1->m_rof->feature_matrix[i][j] - protein1->m_rof->feature_matrix[i][0];
+				y_column[i][j]=protein2->m_rof->feature_matrix[i][j] - protein2->m_rof->feature_matrix[i][0];
 				s_column[i]+=x_column[i][j];
 				t_column[i]+=y_column[i][j];
 			}
@@ -1079,7 +1079,12 @@ void CReadModeDlg::OnKillfocusClusters()
 	// TODO: Add your control notification handler code here
 	CString clusters;
 	m_clusters_handle->GetWindowTextW(clusters);
-	cluster_number= ::StrToIntW(clusters);
+	if(::StrToIntW(clusters)!=0)
+		cluster_number= ::StrToIntW(clusters);
+	else{
+		cluster_number=1;
+		m_clusters_handle->SetWindowTextW(_T("1"));
+	}
 	delete [] rgb[0];
 	delete [] rgb;
 	AssignRandomColours();//reassign colours to the new rgb array
