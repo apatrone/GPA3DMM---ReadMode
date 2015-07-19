@@ -46,9 +46,10 @@ void ReadOBJFile::GetInfo()
 	while (1)
 	{
 		memset(str,0,256);
-		if(!this->ReadLine(fp,str))
+		res = fscanf(fp, "%s", str);
+		if (res == EOF)
 			break;
-		if (str[0]=='v'&&str[1]==' ')
+		if (strcmp( str, "v" ) == 0 )
 		{
 			if (nVertex==1)
 			{
@@ -59,53 +60,10 @@ void ReadOBJFile::GetInfo()
 				this->m_v=(GLVertex *)realloc(this->m_v,(nVertex-1)*sizeof(GLVertex)+sizeof(GLVertex));
 			}
 			m_v[nVertex-1].nVertexIndex=nVertex;
-			int flag=1;
-			int start;
-			for (int j=0;str[j]!='\0';j++)
-			{
-				if(str[j]==' '&&str[j+1]!=' ')
-				{
-					start=j+1;
-					break;
-				}
-			}
-			int n1=start,n2;
-			while (flag!=4)
-			{
-				for (int i=n1;;i++)
-				{
-					if (str[i]==' '||str[i]=='\0')
-					{
-						n2=i;
-						break;
-					}
-				}
-				char *VertexData;
-				int nCount=n2-n1;
-				VertexData=new char[nCount+1];
-				memset(VertexData,0,nCount+1);
-				strncpy(VertexData,str+n1,nCount);
-				float ff;
-				sscanf(VertexData,"%f",&ff);
-				switch(flag)
-				{
-				case 1:
-					m_v[nVertex-1].x=ff;
-					break;
-				case 2:
-					m_v[nVertex-1].y=ff;
-					break;
-				case 3:
-					m_v[nVertex-1].z=ff;
-					break;
-				}
-				flag++;
-				n1=n2+1;
-				delete VertexData;
-			}
+			fscanf(fp, "%f %f %f\n", &m_v[nVertex-1].x, &m_v[nVertex-1].y, &m_v[nVertex-1].z );
 			nVertex++;
 		}
-		else if(str[0]=='v'&&str[1]=='t'&&str[2]==' ')
+		else if(strcmp( str, "vt" ) == 0)
 		{
 			vt=true;
 			int nEdge=0;
@@ -120,56 +78,10 @@ void ReadOBJFile::GetInfo()
 				this->m_vt=(Texture*)realloc(this->m_vt,(nTexture-1)*sizeof(Texture)+sizeof(Texture));
 			m_vt[nTexture-1].nTextureIndex=nTexture;
 			m_vt[nTexture-1].z=0.0;
-			int flag=1;
-			int start;
-			for(int x=0;str[x]!='\0';x++)
-			{
-				if(str[x]==' '&&str[x+1]!=' ')
-				{
-					start=x+1;
-					break;
-
-				}
-			}
-			int n1=start,n2;
-			while(flag!=nEdge+1)
-			{
-
-				for(int i=n1;;i++)
-				{
-					if(str[i]==' '||str[i]=='\0')
-					{
-						n2=i;
-						break;
-					}
-				}
-				char *VertexData;
-				int nCount=n2-n1;
-				VertexData=new char[nCount+1];
-				memset(VertexData,0,nCount+1);
-				strncpy(VertexData,str+n1,nCount);
-				float ff;
-				sscanf(VertexData,"%f",&ff);
-				switch(flag)
-				{
-				case 1:
-					m_vt[nTexture-1].x=ff;
-					break;
-				case 2:
-					m_vt[nTexture-1].y=ff;
-					break;
-				case 3:
-					m_vt[nTexture-1].z=ff;
-					break;
-
-				}
-				flag++;
-				n1=n2+1;
-				delete VertexData;
-			}
+			fscanf(fp, "%f %f\n", &m_vt[nTexture-1].x, &m_vt[nTexture-1].y );
 			nTexture++;
 		}
-		else if(str[0]=='v'&&str[1]=='n'&&str[2]==' ')
+		else if(strcmp( str, "vn" ) == 0)
 		{
 			vn=true;
 			if(nNormal==1)
@@ -177,57 +89,11 @@ void ReadOBJFile::GetInfo()
 			else
 				this->m_vn=(Normal*)realloc(this->m_vn,(nNormal-1)*sizeof(Normal)+sizeof(Normal));
 			m_vn[nNormal-1].nNormalIndex=nNormal;
-			int flag=1;
-			int start;
-			for(int x=0;str[x]!='\0';x++)
-			{
-				if(str[x]==' '&&str[x+1]!=' ')
-				{
-					start=x+1;
-					break;
-				}
-			}
-			int n1=start,n2;
-			while(flag!=4)
-			{
-				;
-				for(int i=n1;;i++)
-				{
-					if(str[i]==' '||str[i]=='\0')
-					{
-						n2=i;
-						break;
-					}
-				}
-				char *VertexData;
-				int nCount=n2-n1;
-				VertexData=new char[nCount+1];
-				memset(VertexData,0,nCount+1);
-				strncpy(VertexData,str+n1,nCount);
-				float ff;
-				sscanf(VertexData,"%f",&ff);
-				switch(flag)
-				{
-				case 1:
-					m_vn[nNormal-1].x=ff;
-					break;
-				case 2:
-					m_vn[nNormal-1].y=ff;
-					break;
-				case 3:
-					m_vn[nNormal-1].z=ff;
-					break;
-
-				}
-				flag++;
-				n1=n2+1;
-				delete VertexData;
-			}
+			fscanf(fp, "%f %f %f\n", &m_vn[nNormal-1].x, &m_vn[nNormal-1].y, &m_vn[nNormal-1].z );
 			nNormal++;
 		}
-		///////////////
 		else if (strncmp("usemtl",str,6)==0)
-			{
+		{
 				int i=0;
 				while (i!=m_nCount)
 				{
@@ -248,145 +114,76 @@ void ReadOBJFile::GetInfo()
 					else
 						i++;
 				}
-			}
-		else if (str[0]=='f'&&str[1]==' ')
+		}
+		else if (strcmp( str, "f" ) == 0)
 			{
-				int nEdge=0;
-				for (int j=0;str[j]!='\0';j++)
-				{
-					if (str[j]==' '&&str[j+1]!=' '&&str[j+1]!='\0')
-						nEdge++;
-				}
-				if(nEdge==3)
-					::glBegin(GL_TRIANGLES);
-				if (nEdge==4)
-					::glBegin(GL_QUADS);
-				int start;
-				for (int j=0;str[j]!='\0';j++)
-				{
-					if(str[j]==' '&&str[j+1]!=' ')
-					{
-						start=j+1;
-						break;
+				//PAS DE GESTION DES QUADS!
+				unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+				if(vt==true && vn==true){
+					int matches = fscanf(fp, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
+					if (matches != 9){
+						printf("File can't be read by our simple parser :-( Try exporting with other options\n");
+						return;
 					}
+					vertexIndices.push_back(vertexIndex[0]-1);
+					vertexIndices.push_back(vertexIndex[1]-1);
+					vertexIndices.push_back(vertexIndex[2]-1);
+					uvIndices    .push_back(uvIndex[0]-1);
+					uvIndices    .push_back(uvIndex[1]-1);
+					uvIndices    .push_back(uvIndex[2]-1);
+					normalIndices.push_back(normalIndex[0]-1);
+					normalIndices.push_back(normalIndex[1]-1);
+					normalIndices.push_back(normalIndex[2]-1);
 				}
-				int n1=start,n2;
-				int flag=1;
-				while (flag!=nEdge+1)
-				{
-					for (int i=n1;;i++)
-					{
-						if(str[i]==' '||str[i]=='\0')
-						{
-							n2=i;
-							break;
-						}
+				else if(vt==true && vn==false){
+					int matches = fscanf(fp, "%d/%d %d/%d %d/%d\n", &vertexIndex[0], &uvIndex[0], &vertexIndex[1], &uvIndex[1],  &vertexIndex[2], &uvIndex[2]);
+					if (matches != 6){
+						printf("File can't be read by our simple parser :-( Try exporting with other options\n");
+						return ;
 					}
-					char *VertexData;
-					int nCount=n2-n1;
-					VertexData=new char[nCount+1];
-					memset(VertexData,0,nCount+1);
-					strncpy(VertexData,str+n1,nCount);
-					int n3=0,n4;
-					for(int j=0;j<nCount;j++)
-					{
-						char *Data;
-						int d1,d2,d3;
-						if(VertexData[j]=='/'&&VertexData[j+1]=='/')
-						{
-							vn=true;
-							n4=j;
-							int nLength=n4-n3;
-							Data=new char[nLength+1];
-							memset(Data,0,nLength+1);
-							strncpy(Data,VertexData,nLength);
-							sscanf(Data,"%d",&d1);
-							delete Data;
-							n3=n4+2;
-							n4=nCount;
-							nLength=n4-n3;
-							Data=new char[nLength+1];
-							memset(Data,0,nLength+1);
-							strncpy(Data,VertexData+n3,nLength);
-							sscanf(Data,"%d",&d2);
-							vertexIndices.push_back(d1-1);
-							normalIndices.push_back(d2-1);
-							::glNormal3f(this->m_vn[d2-1].x,this->m_vn[d2-1].y,this->m_vn[d2-1].z);
-							::glVertex3f(this->m_v[d1-1].x,this->m_v[d1-1].y,this->m_v[d1-1].z);
-							delete Data;
-							break;
-						}
-						else if(VertexData[j]=='/')
-							{
-								vt=true; vn=true;
-								n4=j;
-								int nLength=n4-n3;
-								Data=new char[nLength+1];
-								memset(Data,0,nLength+1);
-								strncpy(Data,VertexData,nLength);
-								sscanf(Data,"%d",&d1);
-								delete Data;
-								n3=n4+1;
-								for(int k=n3;k<nCount;k++)
-								{
-									if(VertexData[k]=='/')
-									{
-										n4=k;
-										break;
-									}
-								}
-								nLength=n4-n3;
-								Data=new char[nLength+1];
-								memset(Data,0,nLength+1);
-								strncpy(Data,VertexData+n3,nLength);
-								sscanf(Data,"%d",&d2);
-								//::glTexCoord2f(this->m_vt[dd-1].x,this->m_vt[dd-1].y);
-								delete Data;
-								n3=n4+1;
-								n4=nCount;
-								nLength=n4-n3;
-								Data=new char[nLength+1];
-								memset(Data,0,nLength+1);
-								strncpy(Data,VertexData+n3,nLength);
-								sscanf(Data,"%d",&d3);
-								vertexIndices.push_back(d1-1);
-								uvIndices.push_back(d2-1);
-								normalIndices.push_back(d3-1);
-								::glNormal3f(this->m_vn[d3-1].x,this->m_vn[d3-1].y,this->m_vn[d3-1].z);
-								::glTexCoord3f(this->m_vt[d2-1].x,this->m_vt[d2-1].y,this->m_vt[d2-1].z);
-								::glVertex3f(this->m_v[d1-1].x,this->m_v[d1-1].y,this->m_v[d1-1].z);
-								delete Data;
-								break;
+					vertexIndices.push_back(vertexIndex[0]-1);
+					vertexIndices.push_back(vertexIndex[1]-1);
+					vertexIndices.push_back(vertexIndex[2]-1);
+					uvIndices    .push_back(uvIndex[0]-1);
+					uvIndices    .push_back(uvIndex[1]-1);
+					uvIndices    .push_back(uvIndex[2]-1);
+				}
+				else if(vt==false && vn==true){
+					int matches = fscanf(fp, "%d//%d %d//%d %d//%d\n", &vertexIndex[0], &normalIndex[0], &vertexIndex[1], &normalIndex[1], &vertexIndex[2], &normalIndex[2] );
+					if (matches != 6){
+						printf("File can't be read by our simple parser :-( Try exporting with other options\n");
+						return ;
+					}
+					vertexIndices.push_back(vertexIndex[0]-1);
+					vertexIndices.push_back(vertexIndex[1]-1);
+					vertexIndices.push_back(vertexIndex[2]-1);
+					normalIndices.push_back(normalIndex[0]-1);
+					normalIndices.push_back(normalIndex[1]-1);
+					normalIndices.push_back(normalIndex[2]-1);
+				}
+				else if(vt==false && vn==false){
+					int matches = fscanf(fp, "%d %d %d\n", &vertexIndex[0], &vertexIndex[1],&vertexIndex[2] );
+					if (matches != 3){
+						printf("File can't be read by our simple parser :-( Try exporting with other options\n");
+						return;
+					}
+					vertexIndices.push_back(vertexIndex[0]-1);
+					vertexIndices.push_back(vertexIndex[1]-1);
+					vertexIndices.push_back(vertexIndex[2]-1);
 
-							}
-						else
-						{
-							std::string str(VertexData);
-							if(str.find('/')==-1 && (j==lastj+length || j==0 ))
-							{ //no '/' found //
-								length=sizeof(VertexData);
-								Data=new char[length+1];
-								memset(Data,0,length+1);
-								strncpy(Data,VertexData,length);
-								sscanf(Data,"%d",&d1);
-								delete Data;
-								vertexIndices.push_back(d1-1);
-								::glVertex3f(this->m_v[d1-1].x,this->m_v[d1-1].y,this->m_v[d1-1].z);
-							}
-						}
-					}
-					flag++;
-					n1=n2+1;
-					delete VertexData;
 				}
-				::glEnd();
-			}
 
 		}
-		init=true;
-		size_m_v=nVertex-1;
-		res=(vt==true)+2*(vn==true); 
-
+		else{
+			// Probably a comment, eat up the rest of the line
+			char stupidBuffer[1000];
+			fgets(stupidBuffer, 1000, fp);
+		}
+	}
+	init=true;
+	size_m_v=nVertex-1;
+	res=(vt==true)+2*(vn==true); 
+	
 	
 }
 void ReadOBJFile::GetMtlInfo()
