@@ -46,8 +46,8 @@ void ReadOBJFile::GetInfo()
 	while (1)
 	{
 		memset(str,0,256);
-		res = fscanf(fp, "%s", str);
-		if (res == EOF)
+		int tmp = fscanf(fp, "%s", str);
+		if (tmp == EOF)
 			break;
 		if (strcmp( str, "v" ) == 0 )
 		{
@@ -197,7 +197,8 @@ void ReadOBJFile::GetMtlInfo()
 	while (1)
 	{
 		memset(str,0,256);
-		if (this->ReadLine(fp,str)==false)
+		int tmp = fscanf(fp, "%s", str);
+		if (tmp == EOF)
 			break;
 		if(strncmp("mtllib",str,6)==0)
 		{
@@ -243,7 +244,8 @@ void ReadOBJFile::GetMtlInfo()
 	while (1)
 	{
 		memset(str,0,256);
-		if(this->ReadLine(fp,str))
+		int tmp = fscanf(fp, "%s", str);
+		if (tmp == EOF)
 			break;
 		int nCount=0;
 		if(str[0]==' '||str[0]==9)
@@ -431,26 +433,7 @@ bool ReadOBJFile::ReadFile(char *FileName)
 	/*GetCluster(true);
 	SimilarityMeasurement();*/
 }
-bool ReadOBJFile::ReadLine(FILE *fp,char *str)
-{
-	char c1,c2;
-	c1=fgetc(fp);
-	c2=fgetc(fp);
-	int i=0;
-	while (c1!=13&&c2!=10)
-	{
-		if(feof(fp))
-		{
-			fclose(fp);
-			return false;
-		}
-		str[i]=c1;
-		c1=c2;
-		i++;
-		c2=fgetc(fp);
-	}
-	return true;
-}
+
 void ReadOBJFile::Draw()
 {
 	//print colours
@@ -540,52 +523,52 @@ int ReadOBJFile::EstimateNormals(void)
 {
 	//to make the program faster, it would be better to estimate normals in the same function that we estimate kMkG
 	
-std::vector<glm::vec3>* normal_buffer = new std::vector<glm::vec3>[vertexIndices.size()]();
-//#pragma omp parallel for  //Fait planter sur certains obj.... (1HLB, etc)
-for( int i = 0; i < vertexIndices.size()-2; i += 3 )
-{
-	// get the three vertices that make the faces
-	glm::vec3 p1 = glm::vec3(m_v[vertexIndices[i+0]].x, m_v[vertexIndices[i+0]].y, m_v[vertexIndices[i+0]].z);
-	glm::vec3 p2 = glm::vec3(m_v[vertexIndices[i+1]].x, m_v[vertexIndices[i+1]].y, m_v[vertexIndices[i+1]].z);
-	glm::vec3 p3 =  glm::vec3(m_v[vertexIndices[i+2]].x, m_v[vertexIndices[i+2]].y, m_v[vertexIndices[i+2]].z);
+	std::vector<glm::vec3>* normal_buffer = new std::vector<glm::vec3>[vertexIndices.size()]();
+	//#pragma omp parallel for  //Fait planter sur certains obj.... (1HLB, etc)
+	for( int i = 0; i < vertexIndices.size()-2; i += 3 )
+	{
+		// get the three vertices that make the faces
+		glm::vec3 p1 = glm::vec3(m_v[vertexIndices[i+0]].x, m_v[vertexIndices[i+0]].y, m_v[vertexIndices[i+0]].z);
+		glm::vec3 p2 = glm::vec3(m_v[vertexIndices[i+1]].x, m_v[vertexIndices[i+1]].y, m_v[vertexIndices[i+1]].z);
+		glm::vec3 p3 =  glm::vec3(m_v[vertexIndices[i+2]].x, m_v[vertexIndices[i+2]].y, m_v[vertexIndices[i+2]].z);
  
-	glm::vec3 v1 = p2 - p1;
-	glm::vec3 v2 = p3 - p1; 
-	//cross product
-	glm::vec3 normal=GetCrossProduct(v1,v2);
+		glm::vec3 v1 = p2 - p1;
+		glm::vec3 v2 = p3 - p1; 
+		//cross product
+		glm::vec3 normal=GetCrossProduct(v1,v2);
 
-	//normalize  ------->better to do it after?
- /*  float length = normal.x * normal.x + normal.y * normal.y + normal.z * normal.z;
-   length = sqrt(length);
-   normal.x /= length; normal.y /= length; normal.z /= length;*/
+		//normalize  ------->better to do it after?
+	 /*  float length = normal.x * normal.x + normal.y * normal.y + normal.z * normal.z;
+	   length = sqrt(length);
+	   normal.x /= length; normal.y /= length; normal.z /= length;*/
  
-   // Store the face's normal for each of the vertices that make up the face.
-   normal_buffer[vertexIndices[i+0]].push_back( normal );
-   normal_buffer[vertexIndices[i+1]].push_back( normal );
-   normal_buffer[vertexIndices[i+2]].push_back( normal );
- }
+	   // Store the face's normal for each of the vertices that make up the face.
+	   normal_buffer[vertexIndices[i+0]].push_back( normal );
+	   normal_buffer[vertexIndices[i+1]].push_back( normal );
+	   normal_buffer[vertexIndices[i+2]].push_back( normal );
+	 }
 
- m_vcalc=(GLVertex *)malloc(sizeof(GLVertex)* size_m_v);
- // Now loop through each vertex vector, and average out all the normals stored.
- #pragma omp parallel for 
- for( int i = 0; i < size_m_v; ++i )   //900 tjr pas de réécriture  ... mais réécriture sur m_vn avant 925, mais pas sur uvindices
- {
-	m_vcalc[i].x=m_v[i].x; m_vcalc[i].y=m_v[i].y; m_vcalc[i].z=m_v[i].z;
-	m_vcalc[i].normal=glm::vec3(0,0,0);
-	#pragma omp parallel for  // changes result
-   for( int j = 0; j < normal_buffer[i].size(); ++j )
-   {	  
-	 m_vcalc[i].normal += normal_buffer[i][j];
-   }
-	m_vcalc[i].normal /= normal_buffer[i].size(); //This line doesn't seem to change much
-	//code that was above before
-   float length = m_vcalc[i].normal.x *m_vcalc[i].normal.x + m_vcalc[i].normal.y * m_vcalc[i].normal.y + m_vcalc[i].normal.z * m_vcalc[i].normal.z;
-   length = sqrt(length);
-   m_vcalc[i].normal.x /= length; m_vcalc[i].normal.y /= length; m_vcalc[i].normal.z /= length;
- }
+	 m_vcalc=(GLVertex *)malloc(sizeof(GLVertex)* size_m_v);
+	 // Now loop through each vertex vector, and average out all the normals stored.
+	 #pragma omp parallel for 
+	 for( int i = 0; i < size_m_v; ++i )   //900 tjr pas de réécriture  ... mais réécriture sur m_vn avant 925, mais pas sur uvindices
+	 {
+		m_vcalc[i].x=m_v[i].x; m_vcalc[i].y=m_v[i].y; m_vcalc[i].z=m_v[i].z;
+		m_vcalc[i].normal=glm::vec3(0,0,0);
+		#pragma omp parallel for  // changes result
+	   for( int j = 0; j < normal_buffer[i].size(); ++j )
+	   {	  
+		 m_vcalc[i].normal += normal_buffer[i][j];
+	   }
+		m_vcalc[i].normal /= normal_buffer[i].size(); //This line doesn't seem to change much
+		//code that was above before
+	   float length = m_vcalc[i].normal.x *m_vcalc[i].normal.x + m_vcalc[i].normal.y * m_vcalc[i].normal.y + m_vcalc[i].normal.z * m_vcalc[i].normal.z;
+	   length = sqrt(length);
+	   m_vcalc[i].normal.x /= length; m_vcalc[i].normal.y /= length; m_vcalc[i].normal.z /= length;
+	 }
 
- //could have used glm::normalize(glm::cross(c - a, b - a));....
- return true;
+	 //could have used glm::normalize(glm::cross(c - a, b - a));....
+	 return true;
 }
 void ReadOBJFile::GetCluster(bool lloyd){
 	//an array of columns, where cluster_indices[i] contains the indices of the vertices that are adjacent to vi
@@ -1220,7 +1203,7 @@ point ReadOBJFile::gen_xy()
 	return pt;
 }
  
-inline double ReadOBJFile::dist2(point a, point b)
+inline double ReadOBJFile::dist2(point a, point b) //euclidian distance
 {
 	double x = a->x - b->x, y = a->y - b->y, z = a->z - b->z;
 	return x*x + y*y + z*z;

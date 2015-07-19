@@ -82,7 +82,6 @@ public:
 	int EstimateNormals(void);
 	void Draw();
 	bool ReadFile(char * FileNmae);
-	bool ReadLine(FILE *fp,char *str);
 	std::vector<glm::vec3> OrderEdges(std::vector<glm::vec3> edges);
 	std::vector<GLEdge> OrderGLEdges(std::vector<GLEdge> edges); //----
 	std::vector<int>  ReadOBJFile::OrderCluster(std::vector<int> cluster);
