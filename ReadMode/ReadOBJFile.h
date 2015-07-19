@@ -138,6 +138,6 @@ public:
 	float **feature_matrix;
 	GLfloat **rgb;
 	int cluster_number;
-
+	CString str; 
 };
 

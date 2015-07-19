@@ -107,24 +107,16 @@
     <None Include="res\ReadMode.rc2" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="controls.hpp" />
-    <ClInclude Include="objloader.hpp" />
     <ClInclude Include="ProteinFrame.h" />
-    <ClInclude Include="ProteinView.h" />
     <ClInclude Include="ReadMode.h" />
     <ClInclude Include="ReadModeDlg.h" />
     <ClInclude Include="ReadOBJFile.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="shader.hpp" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="TrackBall.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="controls.cpp" />
-    <ClCompile Include="objloader.cpp" />
     <ClCompile Include="ProteinFrame.cpp" />
-    <ClCompile Include="ProteinView.cpp" />
     <ClCompile Include="ReadMode.cpp" />
     <ClCompile Include="ReadModeDlg.cpp" />
     <ClCompile Include="ReadOBJFile.cpp" />

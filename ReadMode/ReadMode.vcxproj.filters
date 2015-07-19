@@ -34,34 +34,19 @@
     <ClInclude Include="ReadModeDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ReadOBJFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TrackBall.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProteinFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProteinView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="objloader.hpp">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="shader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="controls.hpp">
+    <ClInclude Include="ProteinFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -72,25 +57,16 @@
     <ClCompile Include="ReadModeDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ReadOBJFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ProteinFrame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProteinView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="objloader.cpp">
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="controls.cpp">
+    <ClCompile Include="ProteinFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

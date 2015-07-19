@@ -669,8 +669,10 @@ void ReadOBJFile::Draw()
 	#pragma parallel for private(comp)
 	for(int i=0; i<vertexIndices.size(); i++)
 	{	
-		if(use_curvature==SHAPEINDEX){
+		if(use_curvature==SHAPEINDEX ){
 			comp=m_vcalc[vertexIndices[i]].shape_index;
+			/*else if(use_curvature==SGF)	//scaling for SGF not good, too many results white
+				comp=2 * (m_vcalc[vertexIndices[i]].SGF - min_SGF)/( max_SGF - min_SGF) - 1;*/
 			/*if(comp> 0){
 				::glColor3f(comp,0.2f,0.2f);
 			}
@@ -702,19 +704,21 @@ void ReadOBJFile::Draw()
 			int colour_index=m_vcalc[vertexIndices[i]].group;
 			::glColor3f(rgb[colour_index][0],rgb[colour_index][1],rgb[colour_index][2]);
 		}
+
 		else if(use_curvature!=NONE ){
 			if(use_curvature==GAUSS)
-				comp=m_vcalc[vertexIndices[i]].kG * 100;
+				comp=m_vcalc[vertexIndices[i]].kG * 100;				
 			else if(use_curvature==MEAN)
 				comp=m_vcalc[vertexIndices[i]].kM *100;
-			if(use_curvature==SGF)	
+			else if(use_curvature==SGF)	
 				comp=m_vcalc[vertexIndices[i]].SGF *100;
-
+			
 			if(comp>gauss_sup)  
 			{::glColor3f(0.5f,1.0f,0.0f); } //green
 			else if(comp<gauss_inf) 
 			{::glColor3f(0.5f,0.0f,0.5f);}  //mauve
-			else{
+			else
+			{
 				::glColor3f(0.0f,1.0f,1.0f); //turquoise					
 			}
 		}
@@ -783,7 +787,7 @@ for( int i = 0; i < vertexIndices.size()-2; i += 3 )
    m_vcalc[i].normal.x /= length; m_vcalc[i].normal.y /= length; m_vcalc[i].normal.z /= length;
  }
 
-
+ //could have used glm::normalize(glm::cross(c - a, b - a));....
  return true;
 }
 void ReadOBJFile::GetCluster(bool lloyd){
@@ -863,9 +867,9 @@ void ReadOBJFile::GetCluster(bool lloyd){
 }
 void ReadOBJFile::EstimatekGkM(void)
 { 
-	
-    //std::sort(s.begin(), s.end(), customLess);
-	#pragma omp parallel for schedule(static)
+	  CString str; str="[";
+	//std::sort(s.begin(), s.end(), customLess);
+	//#pragma omp parallel for schedule(static)
 	for(int i=0; i<size_m_v; i++) //for each vertex
 	{
 		if(cluster_indices[i].size()!=0)
@@ -980,18 +984,24 @@ void ReadOBJFile::EstimatekGkM(void)
 				m_vcalc[i].kG= 0;
 			m_vcalc[i].shape_index = GetShapeIndex(i);
 			m_vcalc[i].area=sum_area;
+
 		}
 		else{
 			m_vcalc[i].kG= 0;
 			m_vcalc[i].kM= 0;
 			m_vcalc[i].shape_index = 0;
 			m_vcalc[i].area=0;
+			str+="0, ";
 		}
-
+			char *s=new char[10];
+			sprintf(s, "%f, ", m_vcalc[i].shape_index);
+			str+=s;
 	}
 
 }
 void ReadOBJFile::EstimateSGF(void){
+
+
 	#pragma omp parallel for schedule(static)
 	for(int i=0; i<size_m_v; i++) //for each vertex
 	{
@@ -1008,7 +1018,6 @@ void ReadOBJFile::EstimateSGF(void){
 				sum+= v.area*pow(v.shape_index, 3); 
 				//sum_area+=current_edge.v.area; 
 				sum_shape_index+=v.shape_index;
-
 			}
 			mean_SI= sum_shape_index/cluster_indices[i].size();
 			//#pragma omp parallel for private (v) schedule(static)
@@ -1026,9 +1035,9 @@ void ReadOBJFile::EstimateSGF(void){
 		}
 		else
 			 m_vcalc[i].SGF=0;
-		
-	}
 
+	}
+	
 }
 bool ReadOBJFile::VertexEqual(GLVertex v1, GLVertex v2)
 {
@@ -1306,8 +1315,13 @@ void ReadOBJFile::SimilarityMeasurement(void)
 			sum_si+=m_vcalc[cluster_indices_lloyd[i][j]].shape_index;
 			sum_sgf+=m_vcalc[cluster_indices_lloyd[i][j]].SGF;
 		}
-		mean_shape_index[i]=sum_si/cluster_indices_lloyd[i].size();
-		mean_sgf[i]=sum_sgf/cluster_indices_lloyd[i].size();
+		if(cluster_indices_lloyd[i].size()!=0)
+		{
+			mean_shape_index[i]=sum_si/cluster_indices_lloyd[i].size();
+			mean_sgf[i]=sum_sgf/cluster_indices_lloyd[i].size();
+		}
+		else mean_shape_index[i]=mean_sgf[i]=0;
+		
 		
 		matrix_t[0][i]=mean_shape_index[i];
 		matrix_t[1][i]=mean_sgf[i];
@@ -1315,6 +1329,23 @@ void ReadOBJFile::SimilarityMeasurement(void)
 		matrix[i][1]=mean_sgf[i];
 	}
 
+	//get string for mean si and sgf
+	float flt;
+	CString str;str= "["; 
+	CString str2; str2="[";
+	char* s= new char[10];
+	for(int i=0; i<cluster_number; i++){ 
+		flt=mean_shape_index[i];
+		sprintf(s, "%.4g", flt );  
+		str+=s;
+		flt=mean_sgf[i];
+		sprintf(s, "%.4g", flt );  
+		str2+=s;
+		if(i!=cluster_number-1){ str+=", ";	 str2+=", ";}
+		
+	}
+	str+="]"; //mean shape index
+	str2+="]";//mean sgf
 	//compute transposed matrix * matrix
 	for(int i=0; i<cluster_number; i++){
 		for(int j=0; j<cluster_number; j++){
@@ -1324,11 +1355,9 @@ void ReadOBJFile::SimilarityMeasurement(void)
 			}
 		}
 	}
-
+	
 	//get string of matrix_mult for matlab
-	float flt;
-	CString str;str= "["; 
-	char* s= new char[10];
+	str="[";
 	for(int i=0; i<cluster_number; i++){ //rows
 		if(i!=0)
 			str+="; ";
@@ -1466,7 +1495,7 @@ point ReadOBJFile::lloyd(point pts, int len, int n_cluster)
 	point cent =new point_t[n_cluster], p , c;
  
 	/* assign init grouping randomly */
-	//for_len p->group = j % n_cluster;  //does not work ->> #IND00 on some values 
+	//for_len p->group = j % n_cluster;  //does not work well ->>a lot of clusters are empty!
 
 	/* or call k++ init */
 	kpp(pts, len, cent, n_cluster);
@@ -1481,7 +1510,7 @@ point ReadOBJFile::lloyd(point pts, int len, int n_cluster)
 			c->original_index= p->original_index;	//rajout, ça n'a aucun sens mais bon (affectation de l'index du dernier data point du groupe
 		}
 		//
-		/*str=" ";
+		str=" ";
 		int i=0;
 		for_len{
 			sprintf(s, "%d \t", p->group );  
@@ -1496,9 +1525,9 @@ point ReadOBJFile::lloyd(point pts, int len, int n_cluster)
 				int p=1;
 			sprintf(s, "%.4g , %.4g, %.4g, %d , %d \n ", c->x, c->y, c->z, c->group, c->original_index );  
 			str+=s;
-		}*/
+		}
 		//
-		for_n { c->x /= (float)c->group; c->y /=(float) c->group; c->z /= (float)c->group;  }//get mean coordinates (=centroid) of each group 
+		for_n { if(c->group!=0){ c->x /= (float)c->group; c->y /=(float) c->group; c->z /= (float)c->group; } }//get mean coordinates (=centroid) of each group 
 
 		changed = 0;
 		/* find closest centroid of each point */
@@ -1513,11 +1542,11 @@ point ReadOBJFile::lloyd(point pts, int len, int n_cluster)
  
 	for_n { c->group = i; }
  	//print cent
-	//str=" ";
-	//for_n{
-	//	sprintf(s, "%.4g , %.4g, %.4g, %d , %d \n ", c->x, c->y, c->z, c->group, c->original_index );  
-	//	str+=s;
-	//}
+	str=" ";
+	for_n{
+		sprintf(s, "%.4g , %.4g, %.4g, %d , %d \n ", c->x, c->y, c->z, c->group, c->original_index );  
+		str+=s;
+	}
 	return cent;
 }
  

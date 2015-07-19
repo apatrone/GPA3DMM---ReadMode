@@ -7,7 +7,7 @@
 #include "ReadOBJFile.h"
 #include "GL/glut.h"
 #include "ProteinFrame.h"
-#include "TrackBall.h"
+//#include "TrackBall.h"
 #include "afxwin.h"
 #include "afxcmn.h"
 
@@ -96,7 +96,7 @@ public:
 	int gauss_superior2;
 	Curvature curv1;
 	Curvature curv2;
-	CTrackBall *trackball;
+	//CTrackBall *trackball;
 //	afx_msg void OnEnChangeGaussInf();
 //	afx_msg void OnEnChangeGaussSup();
 	afx_msg void OnKillfocusGaussInf();

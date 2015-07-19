@@ -7,7 +7,7 @@
 #include "ReadMode.h"
 #include "ReadModeDlg.h"
 #include "afxdialogex.h"
-#include "TrackBall.h"
+//#include "TrackBall.h"
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include "Resource.h"
@@ -430,20 +430,21 @@ void CReadModeDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	protein1->wnd->GetWindowRect(rect); 
 	CRect rect2; 
 	protein2->wnd->GetWindowRect(rect2);
-	this->ClientToScreen(&point);
+	CPoint copy=point;
+	this->ClientToScreen(&copy);
 
 	if(m_move==1){ //dual move
-		if(rect.PtInRect(point) || rect2.PtInRect(point)){
+		if(rect.PtInRect(copy) || rect2.PtInRect(copy)){
 			protein1->m_LDown=true;
 			protein2->m_LDown=true;
 			m_MouseL=point;
 		}
 	} 
-	else if(m_move==2&& rect.PtInRect(point) ){ //move 1
+	else if(m_move==2&& rect.PtInRect(copy) ){ //move 1
 		protein1->m_LDown=true;
 		m_MouseL=point;
 	}
-	else if(m_move==3&& rect2.PtInRect(point) ){ //move 2
+	else if(m_move==3&& rect2.PtInRect(copy) ){ //move 2
 		protein2->m_LDown=true;
 		m_MouseL=point;
 	}
@@ -477,24 +478,24 @@ void CReadModeDlg::OnMouseMove(UINT nFlags, CPoint point)
 			//protein1->Draw();
 		}
 	}
-	else if (protein1->m_rot)
-	{
+	//else if (protein1->m_rot)
+	//{
 
-		if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000))
-		{
-			if ((point.x - m_MouseL.x) != 0)
-			{
-				protein1->m_rot_y = protein1->m_rot_y + ((float)ROTATE_SPEED * (point.x - m_MouseL.x));
-			}
-			
-			if ((point.y - m_MouseL.y) != 0)
-			{	
-				protein1->m_rot_x = protein1->m_rot_x + ((float)ROTATE_SPEED * (point.y - m_MouseL.y));
-			}
-			//protein1->Draw();
-		}
-	
-	}
+	//	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000))
+	//	{
+	//		if ((point.x - m_MouseL.x) != 0)
+	//		{
+	//			protein1->m_rot_y = protein1->m_rot_y + ((float)ROTATE_SPEED * (point.x - m_MouseL.x));
+	//		}
+	//		
+	//		if ((point.y - m_MouseL.y) != 0)
+	//		{	
+	//			protein1->m_rot_x = protein1->m_rot_x + ((float)ROTATE_SPEED * (point.y - m_MouseL.y));
+	//		}
+	//		//protein1->Draw();
+	//	}
+	//
+	//}
 	if (protein2->m_LDown)
 	{
 		if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000)){
@@ -504,24 +505,24 @@ void CReadModeDlg::OnMouseMove(UINT nFlags, CPoint point)
 			//protein2->Draw();
 		}
 	}
-	else if (protein2->m_rot)
-	{
+	//else if (protein2->m_rot)
+	//{
 
-		if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000))
-		{
-			if ((point.x - m_MouseL.x) != 0)
-			{
-				protein2->m_rot_y = protein2->m_rot_y + ((float)ROTATE_SPEED * (point.x - m_MouseL.x));
-			}
+	//	if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000))
+	//	{
+	//		if ((point.x - m_MouseL.x) != 0)
+	//		{
+	//			protein2->m_rot_y = protein2->m_rot_y + ((float)ROTATE_SPEED * (point.x - m_MouseL.x));
+	//		}
 
-			if ((point.y - m_MouseL.y) != 0)
-			{	
-				protein2->m_rot_x = protein2->m_rot_x + ((float)ROTATE_SPEED * (point.y - m_MouseL.y));
-			}
-			//protein2->Draw();
-		}
-	
-	}
+	//		if ((point.y - m_MouseL.y) != 0)
+	//		{	
+	//			protein2->m_rot_x = protein2->m_rot_x + ((float)ROTATE_SPEED * (point.y - m_MouseL.y));
+	//		}
+	//		//protein2->Draw();
+	//	}
+	//
+	//}
 	if(protein1->m_LDown || protein2->m_LDown)
 		m_MouseL=point;
 	CDialogEx::OnMouseMove(nFlags, point);
@@ -1020,6 +1021,7 @@ void CReadModeDlg::ComputeGreyRelation(void)
 			sum_column+=eta_column[i];
 		}
 		float degree= 0.5 * (sum_row + sum_column) / cluster_number;
+
 		CString tmp;
 		tmp.Format(_T("Similarity degree: %f"), degree);	
 		m_simdeg_handle->SetWindowTextW(tmp);

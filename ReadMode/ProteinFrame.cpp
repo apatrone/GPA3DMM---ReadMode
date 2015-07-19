@@ -77,7 +77,8 @@ void* MyThread(ProteinFrame *p)
 			glRotated(p->m_rot_z, 0.0f, 0.0f, 1.0f);
 			glRotated(p->m_rot_y, 0.0f, 1.0f, 0.0f);
 			glRotated(p->m_rot_x, 1.0f, 0.0f, 0.0f); 
-
+			/*glMatrixMode(GL_MODELVIEW);
+			::gluLookAt(0,0,0,p->m_x,p->m_y,p->m_z,0,0,1);*/
 			::glColor3f(0.0f,1.0f,1.0f);
 			glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
 			glEnable(GL_COLOR_MATERIAL);
@@ -91,7 +92,7 @@ void* MyThread(ProteinFrame *p)
 			glDrawBuffer(GL_BACK);
 			
 		}		
-	}
+	} 
 	p->kill_thread=false;
 	p->flag_threadCreated=false;
 /*	::wglMakeCurrent(p->pDC->m_hDC,p->m_hRC);
