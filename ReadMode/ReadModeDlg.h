@@ -153,4 +153,5 @@ public:
 	int cluster_number;
 //	afx_msg void OnChangeSimdegree();
 	afx_msg void OnKillfocusClusters();
+	bool red_text;
 };

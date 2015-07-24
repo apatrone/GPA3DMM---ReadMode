@@ -179,6 +179,8 @@ BOOL CReadModeDlg::OnInitDialog()
 	protein1->wnd=CWnd::GetDlgItem(IDC_SHOW1);
 	protein2->wnd=CWnd::GetDlgItem(IDC_SHOW2);
 	m_infobox_handle=GetDlgItem(IDC_INFO);
+	red_text=false;
+	m_infobox_handle->SetWindowTextW(_T("Ready"));
 	m_simdeg_handle=GetDlgItem(IDC_SIMDEGREE);
 	m_gauss_inf_handle=GetDlgItem(IDC_GAUSS_INF);
 	m_gauss_sup_handle=GetDlgItem(IDC_GAUSS_SUP);
@@ -298,7 +300,8 @@ void CReadModeDlg::OnBnClickedReadm()
 	if(pDlg->DoModal()!=IDOK)
 		return;
 	
-
+	m_infobox_handle->SetWindowTextW(_T("Loading protein 1..."));
+	::RedrawWindow(::GetActiveWindow(), NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 	if(protein1->m_rof==NULL){
 		protein1->LoadProtein(CW2A(pDlg->GetPathName()));
 		LloydClusters();
@@ -317,6 +320,7 @@ void CReadModeDlg::OnBnClickedReadm()
 	if(protein1->m_rof->vn==false){  //if no normal information in file, grey out checkbox
 		m_checkbox1.SetCheck(true);
 		CWnd::GetDlgItem(IDC_CHECK1)->EnableWindow(false);
+		red_text=true;
 		m_infobox_handle->SetWindowTextW(_T("No normal information in this file"));
 	}
 	else m_infobox_handle->SetWindowTextW(_T(""));
@@ -326,7 +330,6 @@ void CReadModeDlg::OnBnClickedReadm()
 		protein1->m_rof->use_curvature = curv1;
 	}
 	//SetTimer(1,100,NULL);
-
 	ComputeGreyRelation();
 	::SetFocus(::GetActiveWindow());
 }
@@ -335,7 +338,9 @@ void CReadModeDlg::OnBnClickedReadm2()
 	CFileDialog *pDlg=new CFileDialog(true);
 	if(pDlg->DoModal()!=IDOK)
 		return;
-
+	red_text=false;
+	m_infobox_handle->SetWindowTextW(_T("Loading protein 2..."));
+	::RedrawWindow(::GetActiveWindow(), NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 	if(protein2->m_rof==NULL){
 		protein2->LoadProtein(CW2A(pDlg->GetPathName()));
 		LloydClusters();
@@ -354,6 +359,7 @@ void CReadModeDlg::OnBnClickedReadm2()
 	if(protein2->m_rof->vn==false){  //if no normal information in file, grey out checkbox
 		m_checkbox2.SetCheck(true);
 		CWnd::GetDlgItem(IDC_CHECK2)->EnableWindow(false);
+		red_text=true;
 		m_infobox_handle->SetWindowTextW(_T("No normal information in this file"));
 	}
 	else m_infobox_handle->SetWindowTextW(_T(""));
@@ -375,6 +381,7 @@ void CReadModeDlg::OnBnClickedMovem()   //mobility model (???)
 	if (protein1->m_rof==NULL)
 	{
 		//AfxMessageBox(_T("请先读取物体!"));
+		red_text=true;
 		m_infobox_handle->SetWindowTextW(_T("Please load an object first"));
 		return;
 	} 
@@ -390,6 +397,7 @@ void CReadModeDlg::OnBnClickedRoatm()//Rotating model
 	// TODO: Add your control notification handler code here
 	if (protein1->m_rof==NULL &&protein2->m_rof==NULL)
 	{
+		red_text=true;
 		m_infobox_handle->SetWindowTextW(_T("Please load an object first")); //if no _T writes in chinese
 		return;
 	} 
@@ -548,6 +556,7 @@ void CReadModeDlg::OnRotation()
 	if (protein1->m_rof==NULL)
 	{
 		//AfxMessageBox(_T("Please load an object first!"));
+		red_text=true;
 		m_infobox_handle->SetWindowTextW(_T("Please load an object first"));	
 		return;
 	} 
@@ -563,8 +572,10 @@ HBRUSH CReadModeDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	// TODO:  Change any attributes of the DC here
 	UINT id = pWnd->GetDlgCtrlID();
 
-	if (id == IDC_INFO)
+	if (id == IDC_INFO && red_text)
 		pDC->SetTextColor(RGB(255,0,0));
+	else if(id == IDC_INFO)
+		pDC->SetTextColor(RGB(0,0,0));
 	// TODO:  Return a different brush if the default is not desired
 	return hbr;
 }
@@ -625,6 +636,7 @@ void CReadModeDlg::OnBnClickedShow2()
 //---------MOVE COMBO + SPEED------------------------//
 void CReadModeDlg::OnCbnSelchangeCombo1()
 {
+
 	// TODO: Add your control notification handler code here
 	int choice=m_ComboMove.GetCurSel();
 	switch(choice){
@@ -642,6 +654,7 @@ void CReadModeDlg::OnCbnSelchangeCombo1()
 		m_move=0;
 		break;
 	}
+	m_infobox_handle->SetWindowTextW(_T(""));
 	//Set focus back on main window
 	::SetFocus(::GetActiveWindow());
 }
@@ -729,9 +742,12 @@ void CReadModeDlg::OnKillfocusGaussInf()
 	// TODO: Add your control notification handler code here
 	CString inf;
 	m_gauss_inf_handle->GetWindowTextW(inf);
-	if(::StrToIntW(inf)<gauss_superior)
+	if(::StrToIntW(inf)<gauss_superior){
+		m_infobox_handle->SetWindowTextW(_T(""));
 		gauss_inferior = ::StrToIntW(inf);
+	}
 	else{
+		red_text=true;
 		m_infobox_handle->SetWindowTextW(_T("This value is not inferior to the sup value"));	
 		gauss_inferior = gauss_superior - 1; 
 		CString tmp;
@@ -747,8 +763,12 @@ void CReadModeDlg::OnKillfocusGaussSup()
 	CString sup;
 	m_gauss_sup_handle->GetWindowTextW(sup);
 	if(gauss_inferior<::StrToIntW(sup))
+	{
+		m_infobox_handle->SetWindowTextW(_T(""));
 		gauss_superior= ::StrToIntW(sup);
+	}
 	else{
+		red_text=true;
 		m_infobox_handle->SetWindowTextW(_T("This value is not superior to the inf value"));	
 		gauss_superior =gauss_inferior +1;
 		CString tmp;
@@ -766,6 +786,7 @@ void CReadModeDlg::OnKillfocusGaussInf2()
 	if(::StrToIntW(inf)<gauss_superior2)
 		gauss_inferior2 = ::StrToIntW(inf);
 	else{
+		red_text=true;
 		m_infobox_handle->SetWindowTextW(_T("This value is not inferior to the sup value"));	
 		gauss_inferior2 = gauss_superior2 - 1; 
 		CString tmp;
@@ -783,6 +804,7 @@ void CReadModeDlg::OnKillfocusGaussSup2()
 	if(gauss_inferior2<::StrToIntW(sup))
 		gauss_superior2= ::StrToIntW(sup);
 	else{
+		red_text=true;
 		m_infobox_handle->SetWindowTextW(_T("This value is not superior to the inf value"));	
 		gauss_superior2 =gauss_inferior2 +1;
 		CString tmp;
@@ -824,6 +846,7 @@ void CReadModeDlg::OnLbnSelchangeList1()
 		protein1->m_rof->use_curvature=curv;
 	}
 	curv1=curv;	
+	m_infobox_handle->SetWindowTextW(_T(""));
 	::SetFocus(::GetActiveWindow());
 }
 void CReadModeDlg::OnLbnSelchangeList2()
@@ -856,6 +879,7 @@ void CReadModeDlg::OnLbnSelchangeList2()
 		protein2->m_rof->use_curvature=curv;
 	}
 	curv2=curv;	
+	m_infobox_handle->SetWindowTextW(_T(""));
 	::SetFocus(::GetActiveWindow());
 }
 
@@ -961,7 +985,11 @@ void CReadModeDlg::OnProtein2Resetview()
 
 void CReadModeDlg::ComputeGreyRelation(void)
 {
+
 	if(protein1->m_rof && protein2->m_rof){
+		red_text=false;
+		m_infobox_handle->SetWindowTextW(_T("Computing grey relation..."));
+		::RedrawWindow(::GetActiveWindow(), NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 		//float x_row[48][48]; float y_row[48][48];
 		//float s_row[48]={0}; float t_row[48]={0};
 		//float eta_row[48]={0};
@@ -1014,6 +1042,25 @@ void CReadModeDlg::ComputeGreyRelation(void)
 				t_column[i]+=y_column[i][j];
 			}
 		}
+		float flt;
+		CString str;str= "["; 
+		CString str2; str2="[";
+		char* s= new char[10];
+		//string for matrix
+		str="[";
+		for(int i=0; i<2; i++){ //rows
+			if(i!=0)
+				str+="; ";
+			for(int j=0; j<cluster_number; j++){  //columns
+				flt=y_column[j][i];
+				sprintf(s, "%.4g", flt );  
+				str+=s;
+				if(j!=47)
+					str+= ", ";
+			}
+		}
+		str+="]";
+
 		float sum_column=0;
 		for(int i=0; i<cluster_number; i++)  
 		{
@@ -1025,7 +1072,9 @@ void CReadModeDlg::ComputeGreyRelation(void)
 		CString tmp;
 		tmp.Format(_T("Similarity degree: %f"), degree);	
 		m_simdeg_handle->SetWindowTextW(tmp);
+		m_infobox_handle->SetWindowTextW(_T(""));
 	}
+
 }
 
 void CReadModeDlg::AssignRandomColours(void){
@@ -1097,6 +1146,9 @@ void CReadModeDlg::OnKillfocusClusters()
  {	
 	 if(protein1->m_rof)
 	{
+		red_text=false;
+		m_infobox_handle->SetWindowTextW(_T("Computing clusters for protein 1..."));
+		::RedrawWindow(::GetActiveWindow(), NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 		protein1->flag=false; while(protein1->critical==true){}
 		protein1->m_rof->cluster_number=cluster_number;
 		protein1->m_rof->AllocRGB();
@@ -1107,6 +1159,9 @@ void CReadModeDlg::OnKillfocusClusters()
 	}
 	if(protein2->m_rof)
 	{
+		red_text=false;
+		m_infobox_handle->SetWindowTextW(_T("Computing clusters for protein 2..."));
+		::RedrawWindow(::GetActiveWindow(), NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 		protein2->flag=false; while(protein2->critical==true){}
 		protein2->m_rof->cluster_number=cluster_number;
 		protein2->m_rof->AllocRGB();
@@ -1117,4 +1172,5 @@ void CReadModeDlg::OnKillfocusClusters()
 	}
 	if(protein1->m_rof && protein2->m_rof)
 		ComputeGreyRelation();
+		m_infobox_handle->SetWindowTextW(_T(""));
  }

@@ -691,6 +691,7 @@ void ReadOBJFile::EstimatekGkM(void)
 				//angle for kG
 				sum_angles+=GetAngle(prev_edge.e,current_edge.e);
 				//area for kG and kM
+
 				sum_area+=GetArea(prev_edge.e,current_edge.e);
 				//get normals and calculate dihedral angle (angle between normals) * length of edge
 				cross_edge=glm::cross(prev_edge.e, current_edge.e);
@@ -744,9 +745,8 @@ void ReadOBJFile::EstimatekGkM(void)
 					ridge_or_valley=0;//planar
 
 			}
-
+			
 			sum_dihedral_angles+=ridge_or_valley*GetAngle(cross_edge/glm::length(cross_edge),cross_next_edge/glm::length(cross_next_edge), false)* glm::length( order_edges[0].e);
-
 
 			if(use_ridgeorvalley){
 				//calc kG
@@ -771,10 +771,10 @@ void ReadOBJFile::EstimatekGkM(void)
 			m_vcalc[i].kM= 0;
 			m_vcalc[i].shape_index = 0;
 			m_vcalc[i].area=0;
-			str+="0, ";
+			
 		}
 			char *s=new char[10];
-			sprintf(s, "%f, ", m_vcalc[i].shape_index);
+			sprintf(s, "%f\n ", m_vcalc[i].shape_index);
 			str+=s;
 	}
 
@@ -860,6 +860,7 @@ float ReadOBJFile::GetArea(glm::vec3 v1, glm::vec3 v2)
 	glm::vec3 v = glm::cross(v1,v2);
 	float area= 0.5* sqrt( v.x * v.x + v.y * v.y + v.z * v.z );  //half the absolute value of the cross product
 	//float k= glm::dot(v1,v2) ; for test...
+
 	return area;
 }
 float ReadOBJFile::GetMixedArea(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3){
@@ -1077,6 +1078,10 @@ bool ReadOBJFile::Collinear(glm::vec3 v1,glm::vec3 v2)
 /////////////
 void ReadOBJFile::SimilarityMeasurement(void)
 {
+	float flt;
+	CString str;str= "["; 
+	CString str2; str2="[";
+	char* s= new char[10];
 	//float matrix[48][2]; //matrix 
 	//float matrix_t[2][48]; //transposed matrix
 	//float matrix_mult[48][48]; //transposed matrix * matrix
@@ -1088,19 +1093,30 @@ void ReadOBJFile::SimilarityMeasurement(void)
 	float *mean_sgf=new float[cluster_number]; //to store the SGF of the 48 data points
 	
 	//compute matrix and transposed matrix 
+		str="[";
 	for(int i=0; i<cluster_number; i++){
 		float sum_si=0;
 		float sum_sgf=0;
 		for(int j=0; j<cluster_indices_lloyd[i].size();j++){
-			sum_si+=m_vcalc[cluster_indices_lloyd[i][j]].shape_index;
+			sum_si+=m_vcalc[cluster_indices_lloyd[i][j]].shape_index;//j=41
 			sum_sgf+=m_vcalc[cluster_indices_lloyd[i][j]].SGF;
+			
+				/*if(i==1){
+				flt=m_vcalc[cluster_indices_lloyd[i][j]].shape_index;
+				sprintf(s, "%i: %.4g, ",cluster_indices_lloyd[i][j], flt );  
+				str+=s;
+				}*/
+				
 		}
+		
 		if(cluster_indices_lloyd[i].size()!=0)
 		{
+			int k=cluster_indices_lloyd[i].size();
 			mean_shape_index[i]=sum_si/cluster_indices_lloyd[i].size();
 			mean_sgf[i]=sum_sgf/cluster_indices_lloyd[i].size();
 		}
-		else mean_shape_index[i]=mean_sgf[i]=0;
+		else 
+			mean_shape_index[i]=mean_sgf[i]=0;
 		
 		
 		matrix_t[0][i]=mean_shape_index[i];
@@ -1108,61 +1124,6 @@ void ReadOBJFile::SimilarityMeasurement(void)
 		matrix[i][0]=mean_shape_index[i];
 		matrix[i][1]=mean_sgf[i];
 	}
-
-	//get string for mean si and sgf
-	float flt;
-	CString str;str= "["; 
-	CString str2; str2="[";
-	char* s= new char[10];
-	for(int i=0; i<cluster_number; i++){ 
-		flt=mean_shape_index[i];
-		sprintf(s, "%.4g", flt );  
-		str+=s;
-		flt=mean_sgf[i];
-		sprintf(s, "%.4g", flt );  
-		str2+=s;
-		if(i!=cluster_number-1){ str+=", ";	 str2+=", ";}
-		
-	}
-	str+="]"; //mean shape index
-	str2+="]";//mean sgf
-	//compute transposed matrix * matrix
-	for(int i=0; i<cluster_number; i++){
-		for(int j=0; j<cluster_number; j++){
-		feature_matrix[i][j]=0;
-			for(int k=0; k<2; k++){
-				feature_matrix[i][j] +=  matrix_t[k][j] * matrix[i][k];
-			}
-		}
-	}
-	
-	//get string of matrix_mult for matlab
-	str="[";
-	for(int i=0; i<cluster_number; i++){ //rows
-		if(i!=0)
-			str+="; ";
-		for(int j=0; j<cluster_number; j++){ //columns
-			flt=feature_matrix[j][i];
-			sprintf(s, "%.4g", flt );  
-			str+=s;
-			if(j!=47)
-				str+= ", ";
-		}
-	}
-	str+="]";
-	////string for matrix_t
-	//str="[";
-	//for(int i=0; i<cluster_number; i++){ //rows
-	//	if(i!=0)
-	//		str+="; ";
-	//	for(int j=0; j<2; j++){  //columns
-	//		flt=matrix_t[j][i];
-	//		sprintf(s, "%.4g", flt );  
-	//		str+=s;
-	//		if(j!=1)
-	//			str+= ", ";
-	//	}
-	//}
 	//str+="]";
 	////string for matrix
 	//str="[";
@@ -1178,6 +1139,60 @@ void ReadOBJFile::SimilarityMeasurement(void)
 	//	}
 	//}
 	//str+="]";
+	////get string for mean si and sgf
+	//str= str2="["; 
+	//for(int i=0; i<cluster_number; i++){ 
+	//	flt=mean_shape_index[i];
+	//	sprintf(s, "%.4g", flt );  
+	//	str+=s;
+	//	flt=mean_sgf[i];
+	//	sprintf(s, "%.4g", flt );  
+	//	str2+=s;
+	//	if(i!=cluster_number-1){ str+=", ";	 str2+=", ";}
+	//	
+	//}
+	//str+="]"; //mean shape index
+	//str2+="]";//mean sgf
+
+	//compute transposed matrix * matrix
+	for(int i=0; i<cluster_number; i++){
+		for(int j=0; j<cluster_number; j++){
+		feature_matrix[i][j]=0;
+			for(int k=0; k<2; k++){
+				feature_matrix[i][j] +=  matrix_t[k][j] * matrix[i][k];
+			}
+		}
+	}
+	
+	//get string of matrix_mult for matlab
+	//str="[";
+	//for(int i=0; i<cluster_number; i++){ //rows
+	//	if(i!=0)
+	//		str+="; ";
+	//	for(int j=0; j<cluster_number; j++){ //columns
+	//		flt=feature_matrix[j][i];
+	//		sprintf(s, "%.4g", flt );  
+	//		str+=s;
+	//		if(j!=47)
+	//			str+= ", ";
+	//	}
+	//}
+	//str+="]";
+	////string for matrix_t
+	//str="[";
+	//for(int i=0; i<cluster_number; i++){ //rows
+	//	if(i!=0)
+	//		str+="; ";
+	//	for(int j=0; j<2; j++){  //columns
+	//		flt=matrix_t[j][i];
+	//		sprintf(s, "%.4g", flt );  
+	//		str+=s;
+	//		if(j!=1)
+	//			str+= ", ";
+	//	}
+	//}
+	//str+="]";
+	
 }
 
 double ReadOBJFile::randf(double m)

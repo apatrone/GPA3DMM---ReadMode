@@ -7,16 +7,28 @@ Vérifier que c'est bien du .obj
 attention aux accès concurrents dans ReadModeDlg!! toutes les modifs sur m_z, etc ne devraient pas se faire là à cause du thread
 gérer la rotation en tenant compte des fps
 
-
 ça serait mieux que wasd controle la camera et la souris controle la position de l'objet
 sinon faire wasd pour objet et fleches pour camera?
 
-
-
 gérer multikey!! pourri sinon
 
-user definition of K (number of clusters)
 how to get the same result with heuristic algorithm -.-
+
+WARNING: matrix allocation not always done in the same way (see feature matrix, rgb, matrix_mult, etc)
+
+destructors ^^
+define space center as center of object (or put object at center of space?)
+use Xmeans instead of kmeans?
+
+do the fucking kd tree
+
+gestion des quads?
+manhatan distances as option..not really useful
+similarity never beneath 0.5??
+ball and protein always 0.5!! ball and ball often 0.5!!! wtf! might be normal because shape index and sgf same for almost every point (?)
+why tank IND0? because cross product = 0 sometimes Oo
+
+efficient matrix multiplication
 
 FAIT:
 faire un thread séparé au lieu d'un timer?!!!non!! draw devrait etre dans un while!!dans un thread
@@ -24,3 +36,6 @@ ptet que le prob du thread c'est quand on fait m-rot draw?à debugger (prob etait
 pour gérer les mvts une équation serait mieux! c'est sacadé là ! (plus sacadé, grace au nouveau readobj)
 Too many file reads, how the fuck is the data stored?
 enlever le son quand ça tourne! depuis quand c'est comme ça :/ (return true quand wm_keydown)
+user definition of K (number of clusters)
+case when number clusters = 0 --> put to 1
+correct error with kdi when number_cluster=1

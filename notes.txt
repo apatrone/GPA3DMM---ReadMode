@@ -16,4 +16,32 @@ message of quad files? or compute?
 the similarity if only 1 cluster = 1; even if different objects
 
 
+for the tank, the cross product is sometimes = 0, i.e the vectors are parallel, even though they can not be
+two cases: (V1=V2=0,0,0 and V1=0,0,0 and V2=x,y,z)
 
+This leads to divisions by zero when dividing by length of cross product
+Should put everywhere:
+glm::vec3 vec_zero=glm::vec3(0.0f,0.0f,0.0f);
+if(cross_edge!=vec_zero && cross_next_edge!=vec_zero)
+
+
+
+>> prev_edge=[0.00000000, 0.0000000, 8.7945004]
+
+prev_edge =
+
+         0         0    8.7945
+
+>> current_edge=[0.00000000,0.00000000 ,-10.201700]
+
+current_edge =
+
+         0         0  -10.2017
+
+>> R= cross(prev_edge, current_edge)
+
+R =
+
+     0     0     0
+
+why??
